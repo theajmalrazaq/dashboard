@@ -1,0 +1,36 @@
+services:
+  dashboard:
+    container_name: ajmal-dashboard
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_TARGET: dashboard
+        PUBLIC_ENABLE_DASHBOARD: "true"
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
+        PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY:-}
+        PUBLIC_GITHUB_FEED_TOKEN: ${PUBLIC_GITHUB_FEED_TOKEN:-}
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    restart: unless-stopped
+    pid: host
+    ports:
+      - "${HOST_PORT:-4321}:4321"
+      - "4325:4325"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4321
+      HOME: ${LOCAL_HOME:-/home/theajmalrazaq}
+      USER: ${LOCAL_USER:-theajmalrazaq}
+      PUBLIC_ENABLE_DASHBOARD: "true"
+      XDG_RUNTIME_DIR: /run/user/${LOCAL_UID:-1000}
+      DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/${LOCAL_UID:-1000}/bus
+      WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
+      HYPRLAND_INSTANCE_SIGNATURE: ${HYPRLAND_INSTANCE_SIGNATURE:-}
+      PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
+      PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY:-}
+      PUBLIC_GITHUB_FEED_TOKEN: ${PUBLIC_GITHUB_FEED_TOKEN:-}
+    volumes:
+      - ${LOCAL_HOME:-/home/theajmalrazaq}:${LOCAL_HOME:-/home/theajmalrazaq}
+      - /run/user/${LOCAL_UID:-1000}:/run/user/${LOCAL_UID:-1000}
+      - /tmp/hypr:/tmp/hypr

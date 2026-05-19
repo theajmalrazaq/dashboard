@@ -1,0 +1,18 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import { dashboardEnabled } from "../../lib/dashboardMode";
+import LoginForm from "../../components/dashboard/LoginForm.jsx";
+
+if (!dashboardEnabled) {
+    return Astro.redirect("/");
+}
+---
+
+<PageLayout
+    title="Admin Login | Dashboard"
+    description="Login to access the dashboard and manage blog posts."
+    page="dashboard"
+    hideFooter={true}
+>
+    <LoginForm client:load />
+</PageLayout>
