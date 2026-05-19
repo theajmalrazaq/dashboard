@@ -131,7 +131,7 @@ export default function ChatInput({
         return;
       }
 
-      if (e.key.length === 1 || e.key === "Backspace") {
+      if ((e.key.length === 1 && e.key !== " ") || e.key === "Backspace") {
         inputRef.current?.focus();
       }
     };
@@ -401,9 +401,133 @@ export default function ChatInput({
       </DashboardModal>
 
       {isActive && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-[100]">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-[100]">
+          <form
+            onSubmit={handleSend}
+            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[32px] p-1.5 px-4 shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => setShowMenu(!showMenu)}
+              className={`cursor-pointer w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${showMenu ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
+              title="AI Settings"
+            >
+              <i
+                className={`hgi-stroke ${showMenu ? "hgi-cancel-01" : "hgi-menu-01"} text-xl`}
+              ></i>
+            </button>
+
+            <div className="flex-1 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onViewChange(view === "chat" ? "history" : "chat");
+                }}
+                className={`cursor-pointer w-8 h-8 flex items-center justify-center rounded-full transition-all ${view === "history" ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
+                title="Chat History"
+              >
+                <i className="hgi-stroke hgi-clock-01 text-lg"></i>
+              </button>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setShowMenu(false)}
+                disabled={view === "history"}
+                placeholder={
+                  view === "history"
+                    ? "Viewing history..."
+                    : webSearch
+                      ? "Search the universe..."
+                      : "Ask Octo or type / for links, @ for tabs..."
+                }
+                className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim() || view === "history"}
+                className="w-8 h-8 bg-accent hover:shadow-lg hover:shadow-accent/20 text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 flex-shrink-0 cursor-pointer active:scale-95"
+              >
+                <i
+                  className={`hgi-stroke ${loading ? "hgi-loading animate-spin" : "hgi-sent"} text-sm`}
+                ></i>
+              </button>
+            </div>
+
+            <div className="w-[1px] h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
+
+            <button
+              type="button"
+              onClick={onNewChat}
+              className="cursor-pointer w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300 rounded-full"
+              title="New Chat"
+            >
+              <i className="hgi hgi-stroke hgi-plus-sign-square text-lg"></i>
+            </button>
+          </form>
+
+          {/* Tab Commands Line - Horizontal Scrolling */}
+          {showTabCommands && filteredTabCommands.length > 0 && (
+            <div
+              className="mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {filteredTabCommands.map((cmd, index) => (
+                <button
+                  key={cmd.name}
+                  ref={selectedTabIndex === index ? selectedButtonRef : null}
+                  onClick={() => executeCommand(cmd, "tab")}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
+                    selectedTabIndex === index
+                      ? "bg-accent text-white shadow-lg"
+                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                  }`}
+                >
+                  <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>@
+                  {cmd.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Slash Commands Line - Horizontal Scrolling */}
+          {showCommands && filteredCommands.length > 0 && (
+            <div
+              className="mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              <button
+                onClick={() => {
+                  setShowAddModal(true);
+                  setInput("");
+                  setShowCommands(false);
+                }}
+                className="px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/30"
+                title="Add new link"
+              >
+                <i className="hgi-stroke hgi-plus-sign"></i> Add Link
+              </button>
+              {filteredCommands.map((cmd, index) => (
+                <button
+                  key={cmd.name}
+                  ref={selectedIndex === index ? selectedButtonRef : null}
+                  onClick={() => executeCommand(cmd)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                    selectedIndex === index
+                      ? "bg-accent text-white shadow-lg"
+                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                  }`}
+                >
+                  /{cmd.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {showMenu && (
-            <div className="mb-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-6 zoom-in-95 duration-500 backdrop-blur-3xl">
+            <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
                   <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2 uppercase tracking-widest">
@@ -505,130 +629,6 @@ export default function ChatInput({
               </div>
             </div>
           )}
-
-          {/* Tab Commands Line - Horizontal Scrolling */}
-          {showTabCommands && filteredTabCommands.length > 0 && (
-            <div
-              className="mb-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {filteredTabCommands.map((cmd, index) => (
-                <button
-                  key={cmd.name}
-                  ref={selectedTabIndex === index ? selectedButtonRef : null}
-                  onClick={() => executeCommand(cmd, "tab")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
-                    selectedTabIndex === index
-                      ? "bg-accent text-white shadow-lg"
-                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                  }`}
-                >
-                  <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>@
-                  {cmd.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Slash Commands Line - Horizontal Scrolling */}
-          {showCommands && filteredCommands.length > 0 && (
-            <div
-              className="mb-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              <button
-                onClick={() => {
-                  setShowAddModal(true);
-                  setInput("");
-                  setShowCommands(false);
-                }}
-                className="px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/30"
-                title="Add new link"
-              >
-                <i className="hgi-stroke hgi-plus-sign"></i> Add Link
-              </button>
-              {filteredCommands.map((cmd, index) => (
-                <button
-                  key={cmd.name}
-                  ref={selectedIndex === index ? selectedButtonRef : null}
-                  onClick={() => executeCommand(cmd)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                    selectedIndex === index
-                      ? "bg-accent text-white shadow-lg"
-                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                  }`}
-                >
-                  /{cmd.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <form
-            onSubmit={handleSend}
-            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[32px] p-1.5 px-4 shadow-2xl"
-          >
-            <button
-              type="button"
-              onClick={() => setShowMenu(!showMenu)}
-              className={`cursor-pointer w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${showMenu ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
-              title="AI Settings"
-            >
-              <i
-                className={`hgi-stroke ${showMenu ? "hgi-cancel-01" : "hgi-menu-01"} text-xl`}
-              ></i>
-            </button>
-
-            <div className="flex-1 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  onViewChange(view === "chat" ? "history" : "chat");
-                }}
-                className={`cursor-pointer w-8 h-8 flex items-center justify-center rounded-full transition-all ${view === "history" ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
-                title="Chat History"
-              >
-                <i className="hgi-stroke hgi-clock-01 text-lg"></i>
-              </button>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setShowMenu(false)}
-                disabled={view === "history"}
-                placeholder={
-                  view === "history"
-                    ? "Viewing history..."
-                    : webSearch
-                      ? "Search the universe..."
-                      : "Ask Octo or type / for links, @ for tabs..."
-                }
-                className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim() || view === "history"}
-                className="w-8 h-8 bg-accent hover:shadow-lg hover:shadow-accent/20 text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 flex-shrink-0 cursor-pointer active:scale-95"
-              >
-                <i
-                  className={`hgi-stroke ${loading ? "hgi-loading animate-spin" : "hgi-sent"} text-sm`}
-                ></i>
-              </button>
-            </div>
-
-            <div className="w-[1px] h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
-
-            <button
-              type="button"
-              onClick={onNewChat}
-              className="cursor-pointer w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300 rounded-full"
-              title="New Chat"
-            >
-              <i className="hgi hgi-stroke hgi-plus-sign-square text-lg"></i>
-            </button>
-          </form>
         </div>
       )}
     </>

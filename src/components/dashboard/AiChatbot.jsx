@@ -561,7 +561,7 @@ export default function AiChatbot({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col animate-in fade-in zoom-in-95 duration-700 relative pb-32">
+    <div className="w-full max-w-4xl mx-auto flex flex-col animate-in fade-in zoom-in-95 duration-700 relative pt-28 pb-12">
       {/* Action Review Modal */}
       {notificationAction && (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">

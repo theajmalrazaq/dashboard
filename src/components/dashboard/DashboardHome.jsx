@@ -503,6 +503,57 @@ export default function DashboardHome() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Handle Spacebar to Play/Pause Spotify on Home View
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only trigger if we are on the home view (no active tab)
+      if (activeTab) return;
+
+      // Check if user is typing in an input/textarea/editable element
+      const activeTag = document.activeElement?.tagName;
+      if (
+        activeTag === "INPUT" ||
+        activeTag === "TEXTAREA" ||
+        document.activeElement?.isContentEditable
+      ) {
+        return;
+      }
+
+      // Check if the key is space
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault(); // Prevent page scrolling
+
+        // Call the Spotify API playpause command
+        fetch("/api/spotify?command=playpause", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command: "playpause" }),
+        }).catch((err) => console.error("Failed to toggle Spotify play/pause", err));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTab]);
+
+  // Handle Escape key to return to Home View
+  useEffect(() => {
+    const handleEscapeKey = (e) => {
+      if (e.key === "Escape" || e.code === "Escape") {
+        if (activeTab) {
+          e.preventDefault();
+          setActiveTab(null);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleEscapeKey);
+    return () => window.removeEventListener("keydown", handleEscapeKey);
+  }, [activeTab]);
+
   // Pull fresh data whenever the active tab changes
   useEffect(() => {
     if (!activeTab) return;
@@ -653,7 +704,7 @@ export default function DashboardHome() {
 
       <div
         className={`relative w-full px-4 pb-16 ${
-          activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-16 sm:pt-8"
+          activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-28 sm:pt-32"
         } mx-auto flex flex-col z-10`}
       >
         {/* Home View (Visible when no tab is selected) */}
