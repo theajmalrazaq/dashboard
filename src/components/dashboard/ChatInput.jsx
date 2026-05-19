@@ -114,12 +114,76 @@ export default function ChatInput({
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCommand, setNewCommand] = useState({ name: "", url: "" });
   const [commandType, setCommandType] = useState("slash");
+  const [showDollarCommands, setShowDollarCommands] = useState(false);
+  const [filteredDollarCommands, setFilteredDollarCommands] = useState([]);
+  const [selectedDollarIndex, setSelectedDollarIndex] = useState(-1);
+  const [isReminderActive, setIsReminderActive] = useState(false);
+  const [reminderMinutes, setReminderMinutes] = useState(null);
+  const [executing, setExecuting] = useState(null);
+  const [status, setStatus] = useState({ type: null, message: "" });
   const selectedButtonRef = useRef(null);
   const inputRef = useRef(null);
+  const customInputRef = useRef(null);
+
+  const [reminderSetupStep, setReminderSetupStep] = useState(null);
+  const [focusedPillIndex, setFocusedPillIndex] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState("");
+  const [isCustomActive, setIsCustomActive] = useState(false);
+  const [reminderStartTime, setReminderStartTime] = useState(0);
+
+  useEffect(() => {
+    if (isCustomActive) {
+      setTimeout(() => customInputRef.current?.focus(), 50);
+    }
+  }, [isCustomActive]);
+
+  useEffect(() => {
+    if (reminderSetupStep !== "duration") return;
+
+    const handleDurationKeyDown = (e) => {
+      const PRESETS = [5, 10, 15, 30, 45, 60, "custom"];
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedPillIndex((prev) => (prev < PRESETS.length - 1 ? prev + 1 : prev));
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedPillIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (Date.now() - reminderStartTime < 200) return;
+
+        const selected = PRESETS[focusedPillIndex];
+        if (selected === "custom") {
+          setIsCustomActive(true);
+        } else {
+          setReminderMinutes(selected);
+          setReminderSetupStep("message");
+          setIsCustomActive(false);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setIsReminderActive(false);
+        setReminderSetupStep(null);
+        setIsCustomActive(false);
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } else if (/^\d$/.test(e.key)) {
+        e.preventDefault();
+        setFocusedPillIndex(PRESETS.indexOf("custom"));
+        setIsCustomActive(true);
+        setCustomMinutes(e.key);
+        setReminderMinutes(parseInt(e.key) || 5);
+      }
+    };
+
+    window.addEventListener("keydown", handleDurationKeyDown);
+    return () => window.removeEventListener("keydown", handleDurationKeyDown);
+  }, [reminderSetupStep, focusedPillIndex, isCustomActive, reminderStartTime]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
-      if (!isActive || view === "history" || showAddModal) return;
+      if (!isActive || view === "history" || showAddModal || reminderSetupStep === "duration") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       const activeTag = document.activeElement?.tagName;
@@ -138,7 +202,7 @@ export default function ChatInput({
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [isActive, view, showAddModal]);
+  }, [isActive, view, showAddModal, reminderSetupStep]);
 
   useEffect(() => {
     if (selectedButtonRef.current) {
@@ -147,19 +211,21 @@ export default function ChatInput({
         behavior: "smooth",
       });
     }
-  }, [selectedIndex, selectedTabIndex]);
+  }, [selectedIndex, selectedTabIndex, selectedDollarIndex]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInput(value);
     setSelectedIndex(-1);
     setSelectedTabIndex(-1);
+    setSelectedDollarIndex(-1);
 
     // Check for /add command
     if (value.toLowerCase() === "/add") {
       setShowAddModal(true);
       setShowCommands(false);
       setShowTabCommands(false);
+      setShowDollarCommands(false);
       return;
     }
 
@@ -170,7 +236,36 @@ export default function ChatInput({
       setFilteredTabCommands(filtered);
       setShowTabCommands(filtered.length > 0 || query === "");
       setShowCommands(false);
+      setShowDollarCommands(false);
       setCommandType("tab");
+    }
+    // Show dollar commands when user types $
+    else if (value.startsWith("$")) {
+      if (value.toLowerCase().startsWith("$reminder")) {
+        setIsReminderActive(true);
+        setReminderSetupStep("duration");
+        setFocusedPillIndex(0);
+        setReminderStartTime(Date.now());
+        const rest = value.substring(9).trimStart();
+        setInput(rest);
+        setShowDollarCommands(false);
+        setTimeout(() => inputRef.current?.blur(), 50);
+        return;
+      }
+      const query = value.substring(1).toLowerCase();
+      const dollarCmds = [
+        {
+          name: "reminder",
+          icon: "hgi-clock-02",
+          description: "Set a lightweight system reminder",
+        },
+      ];
+      const filtered = dollarCmds.filter((cmd) => cmd.name.includes(query));
+      setFilteredDollarCommands(filtered);
+      setShowDollarCommands(filtered.length > 0 || query === "");
+      setShowCommands(false);
+      setShowTabCommands(false);
+      setCommandType("dollar");
     }
     // Show slash commands when user types /
     else if (value.startsWith("/")) {
@@ -180,10 +275,12 @@ export default function ChatInput({
       setFilteredCommands(filtered);
       setShowCommands(filtered.length > 0 || query === "");
       setShowTabCommands(false);
+      setShowDollarCommands(false);
       setCommandType("slash");
     } else {
       setShowCommands(false);
       setShowTabCommands(false);
+      setShowDollarCommands(false);
     }
   };
 
@@ -194,6 +291,17 @@ export default function ChatInput({
       setInput("");
       setShowTabCommands(false);
       setSelectedTabIndex(-1);
+    } else if (type === "dollar") {
+      if (command.name === "reminder") {
+        setIsReminderActive(true);
+        setReminderSetupStep("duration");
+        setFocusedPillIndex(0);
+        setReminderStartTime(Date.now());
+        setInput("");
+        setTimeout(() => inputRef.current?.blur(), 50);
+      }
+      setShowDollarCommands(false);
+      setSelectedDollarIndex(-1);
     } else {
       // For / commands - open URL
       window.open(command.url, "_blank");
@@ -225,6 +333,17 @@ export default function ChatInput({
   };
 
   const handleKeyDown = (e) => {
+    // Revert to duration setup when backspacing empty input field
+    if (isReminderActive && reminderSetupStep === "message" && input === "") {
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        setReminderSetupStep("duration");
+        setFocusedPillIndex(0);
+        setTimeout(() => inputRef.current?.blur(), 50);
+        return;
+      }
+    }
+
     // Handle @ (tab) commands
     if (showTabCommands && filteredTabCommands.length > 0) {
       if (e.key === "ArrowDown" || e.key === "ArrowRight") {
@@ -242,6 +361,28 @@ export default function ChatInput({
           selectedTabIndex < filteredTabCommands.length
         ) {
           executeCommand(filteredTabCommands[selectedTabIndex], "tab");
+        }
+      }
+      return;
+    }
+
+    // Handle $ (dollar) commands
+    if (showDollarCommands && filteredDollarCommands.length > 0) {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        setSelectedDollarIndex((prev) =>
+          prev < filteredDollarCommands.length - 1 ? prev + 1 : prev,
+        );
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        setSelectedDollarIndex((prev) => (prev > 0 ? prev - 1 : -1));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (
+          selectedDollarIndex >= 0 &&
+          selectedDollarIndex < filteredDollarCommands.length
+        ) {
+          executeCommand(filteredDollarCommands[selectedDollarIndex], "dollar");
         }
       }
       return;
@@ -269,6 +410,37 @@ export default function ChatInput({
   const handleSend = async (e) => {
     e?.preventDefault();
     if (!input.trim() || loading) return;
+
+    if (isReminderActive) {
+      const message = input.trim();
+      setExecuting("set-reminder");
+      setStatus({ type: "info", message: "setting reminder..." });
+      try {
+        const res = await fetch("/api/system", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            command: "omarchy-reminder",
+            action: "bin",
+            args: [(reminderMinutes || 5).toString(), message],
+          }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setStatus({ type: "success", message: "reminder set!" });
+          setInput("");
+          setIsReminderActive(false);
+        } else {
+          setStatus({ type: "error", message: `failed: ${result.error || "unknown"}` });
+        }
+      } catch {
+        setStatus({ type: "error", message: "network error." });
+      } finally {
+        setExecuting(null);
+        setTimeout(() => setStatus({ type: null, message: "" }), 4000);
+      }
+      return;
+    }
 
     // Check if it's an @ command (tab)
     if (input.startsWith("@")) {
@@ -428,6 +600,26 @@ export default function ChatInput({
               >
                 <i className="hgi-stroke hgi-clock-01 text-lg"></i>
               </button>
+
+              {isReminderActive && (
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-accent/15 border border-accent/25 text-accent rounded-full text-[10px] font-bold font-product-sans animate-in zoom-in duration-300 select-none shrink-0">
+                  <i className="hgi hgi-stroke hgi-clock-02 text-xs"></i>
+                  {reminderSetupStep === "duration" ? "$reminder" : `$reminder ${reminderMinutes}`}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsReminderActive(false);
+                      setReminderSetupStep(null);
+                      setInput("");
+                    }}
+                    className="hover:text-accent-hover ml-1 p-0.5"
+                    title="Cancel reminder"
+                  >
+                    <i className="hgi hgi-stroke hgi-cancel-01 text-[9px]"></i>
+                  </button>
+                </div>
+              )}
+
               <input
                 ref={inputRef}
                 type="text"
@@ -436,12 +628,15 @@ export default function ChatInput({
                 onKeyDown={handleKeyDown}
                 onFocus={() => setShowMenu(false)}
                 disabled={view === "history"}
+                readOnly={reminderSetupStep === "duration"}
                 placeholder={
                   view === "history"
                     ? "Viewing history..."
-                    : webSearch
-                      ? "Search the universe..."
-                      : "Ask Octo or type / for links, @ for tabs..."
+                    : isReminderActive
+                      ? "what should we remind you of? (e.g. get some eggs)"
+                      : webSearch
+                        ? "Search the universe..."
+                        : "Ask Octo or type / for links, @ for tabs, $ for reminders..."
                 }
                 className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
               />
@@ -468,6 +663,29 @@ export default function ChatInput({
             </button>
           </form>
 
+          {/* Dollar Commands Line - Horizontal Scrolling */}
+          {showDollarCommands && filteredDollarCommands.length > 0 && (
+            <div
+              className="mt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide animate-in fade-in duration-200"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {filteredDollarCommands.map((cmd, index) => (
+                <button
+                  key={cmd.name}
+                  ref={selectedDollarIndex === index ? selectedButtonRef : null}
+                  onClick={() => executeCommand(cmd, "dollar")}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedDollarIndex === index
+                    ? "bg-accent text-white shadow-lg animate-pulse"
+                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                    }`}
+                >
+                  <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>$
+                  {cmd.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Tab Commands Line - Horizontal Scrolling */}
           {showTabCommands && filteredTabCommands.length > 0 && (
             <div
@@ -479,11 +697,10 @@ export default function ChatInput({
                   key={cmd.name}
                   ref={selectedTabIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "tab")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
-                    selectedTabIndex === index
-                      ? "bg-accent text-white shadow-lg"
-                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedTabIndex === index
+                    ? "bg-accent text-white shadow-lg"
+                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                    }`}
                 >
                   <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>@
                   {cmd.name}
@@ -499,6 +716,7 @@ export default function ChatInput({
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               <button
+                type="button"
                 onClick={() => {
                   setShowAddModal(true);
                   setInput("");
@@ -514,15 +732,118 @@ export default function ChatInput({
                   key={cmd.name}
                   ref={selectedIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                    selectedIndex === index
-                      ? "bg-accent text-white shadow-lg"
-                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${selectedIndex === index
+                    ? "bg-accent text-white shadow-lg"
+                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                    }`}
                 >
                   /{cmd.name}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Active Reminder Setup - Duration pills */}
+          {isReminderActive && reminderSetupStep === "duration" && (
+            <div className={`mt-2 flex flex-col gap-3 p-4 bg-white/95 dark:bg-black/90 backdrop-blur-md border rounded-[24px] shadow-xl animate-in slide-in-from-top-4 duration-300 transition-all ${reminderSetupStep === "duration"
+              ? "border-accent/40 shadow-lg shadow-accent/5 ring-1 ring-accent/20"
+              : "border-gray-200 dark:border-white/10"
+              }`}>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest px-1">
+                  select duration
+                </span>
+                {status.message && (
+                  <div
+                    className={`px-2 py-0.5 rounded-full border text-[8px] font-product-sans font-bold flex items-center gap-1 animate-in fade-in duration-200 ${status.type === "success"
+                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                      : status.type === "error"
+                        ? "bg-red-500/10 text-red-500 border-red-500/20"
+                        : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                      }`}
+                  >
+                    <span
+                      className={`w-1 h-1 rounded-full ${status.type === "success" ? "bg-emerald-500" : status.type === "error" ? "bg-red-500" : "bg-blue-500 animate-pulse"}`}
+                    ></span>
+                    {status.message}
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[5, 10, 15, 30, 45, 60, "custom"].map((t, index) => {
+                  const isFocused = reminderSetupStep === "duration" && focusedPillIndex === index;
+                  const isSelected = reminderMinutes === t && t !== "custom";
+
+                  if (t === "custom") {
+                    return (
+                      <button
+                        key="custom"
+                        type="button"
+                        onClick={() => {
+                          setFocusedPillIndex(index);
+                          setIsCustomActive(true);
+                        }}
+                        className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all flex items-center justify-center ${isFocused
+                          ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
+                          : isCustomActive
+                            ? "bg-accent/15 border-accent/25 text-accent shadow-sm"
+                            : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                          }`}
+                      >
+                        {isCustomActive ? (
+                          <input
+                            ref={customInputRef}
+                            type="number"
+                            placeholder="min"
+                            min="1"
+                            max="1440"
+                            value={customMinutes}
+                            onChange={(e) => {
+                              setCustomMinutes(e.target.value);
+                              setReminderMinutes(parseInt(e.target.value) || 5);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setReminderSetupStep("message");
+                                setIsCustomActive(false);
+                                setTimeout(() => inputRef.current?.focus(), 50);
+                              }
+                            }}
+                            className="bg-transparent border-none outline-none text-center w-8 text-[10px] font-bold text-accent"
+                          />
+                        ) : (
+                          "custom"
+                        )}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => {
+                        setFocusedPillIndex(index);
+                        setReminderMinutes(t);
+                        setReminderSetupStep("message");
+                        setIsCustomActive(false);
+                        setTimeout(() => inputRef.current?.focus(), 50);
+                      }}
+                      className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all ${isSelected
+                        ? "bg-accent/15 text-accent border-accent/25 shadow-sm"
+                        : isFocused
+                          ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
+                          : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                        }`}
+                    >
+                      {t}m
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -542,11 +863,10 @@ export default function ChatInput({
                           setModel(m.id);
                           setShowMenu(false);
                         }}
-                        className={`cursor-pointer flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-bold font-product-sans transition-all duration-300 border ${
-                          model === m.id
-                            ? "bg-accent/[0.05] border-accent/20 text-accent"
-                            : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500 hover:border-gray-200 dark:hover:border-neutral-800"
-                        }`}
+                        className={`cursor-pointer flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-bold font-product-sans transition-all duration-300 border ${model === m.id
+                          ? "bg-accent/[0.05] border-accent/20 text-accent"
+                          : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500 hover:border-gray-200 dark:hover:border-neutral-800"
+                          }`}
                       >
                         <i
                           className={`hgi-stroke ${m.icon} ${model === m.id ? "text-accent" : "text-gray-400"}`}
@@ -565,11 +885,10 @@ export default function ChatInput({
                     </h4>
                     <button
                       onClick={() => setWebSearch(!webSearch)}
-                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${
-                        webSearch
-                          ? "bg-emerald-500/[0.05] border-emerald-500/20 text-emerald-500"
-                          : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500"
-                      }`}
+                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${webSearch
+                        ? "bg-emerald-500/[0.05] border-emerald-500/20 text-emerald-500"
+                        : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500"
+                        }`}
                     >
                       <span className="text-[11px] font-bold font-product-sans">
                         Web Search
@@ -609,7 +928,7 @@ export default function ChatInput({
                         }}
                       ></div>
                     </div>
-                    
+
                     <button
                       onClick={async () => {
                         try {

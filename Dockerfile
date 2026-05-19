@@ -30,7 +30,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends bash ca-certificates curl playerctl procps wl-clipboard \
+  && apt-get install -y --no-install-recommends bash ca-certificates curl playerctl procps wl-clipboard systemd \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/dist ./dist

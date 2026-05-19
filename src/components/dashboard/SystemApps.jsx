@@ -156,11 +156,8 @@ export default function SystemApps({
   const [toggles, setToggles] = useState({});
 
   // Premium integration local states
-  const [reminders, setReminders] = useState([]);
   const [theme, setTheme] = useState({ current: "", available: [] });
   const [powerProfile, setPowerProfile] = useState({ active: "", available: [] });
-  const [reminderMinutes, setReminderMinutes] = useState(5);
-  const [reminderMsg, setReminderMsg] = useState("");
 
   // Synchronize local toggles with global SSE stream updates
   useEffect(() => {
@@ -176,29 +173,12 @@ export default function SystemApps({
 
   // Synchronize other states
   useEffect(() => {
-    if (remindersState) setReminders(remindersState);
-  }, [remindersState]);
-
-  useEffect(() => {
     if (themeState) setTheme(themeState);
   }, [themeState]);
 
   useEffect(() => {
     if (powerProfileState) setPowerProfile(powerProfileState);
   }, [powerProfileState]);
-
-  // Smooth local tick countdown for reminders
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setReminders((prev) =>
-        prev.map((r) => ({
-          ...r,
-          remaining: Math.max(0, r.remaining - 1),
-        }))
-      );
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleSetTheme = async (themeName) => {
     setExecuting(`theme-${themeName}`);
@@ -279,89 +259,7 @@ export default function SystemApps({
     }
   };
 
-  const handleSetReminder = async (e) => {
-    if (e) e.preventDefault();
-    if (!reminderMinutes || reminderMinutes <= 0) return;
 
-    setExecuting("set-reminder");
-    setStatus({ type: "info", message: "setting reminder..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: "omarchy-reminder",
-          action: "bin",
-          args: [reminderMinutes.toString(), reminderMsg],
-        }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setStatus({ type: "success", message: "reminder set!" });
-        setReminderMsg("");
-      } else {
-        setStatus({ type: "error", message: `failed to set reminder: ${result.error}` });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
-
-  const handleClearReminder = async (timerName) => {
-    setExecuting(`clear-${timerName}`);
-    setStatus({ type: "info", message: "clearing reminder..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: `systemctl --user stop ${timerName}`,
-          action: "exec",
-        }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setStatus({ type: "success", message: "reminder cleared!" });
-      } else {
-        setStatus({ type: "error", message: "failed to clear reminder" });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
-
-  const handleClearAllReminders = async () => {
-    setExecuting("clear-all-reminders");
-    setStatus({ type: "info", message: "clearing all reminders..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: "omarchy-reminder",
-          action: "bin",
-          args: ["clear"],
-        }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setStatus({ type: "success", message: "all reminders cleared!" });
-      } else {
-        setStatus({ type: "error", message: "failed to clear reminders" });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
 
   const handleToggle = async (scriptName) => {
     if (executing) return;
@@ -859,129 +757,7 @@ export default function SystemApps({
       ) : (
         // ── ALL OTHER TABS ──
         <div className="flex flex-col gap-6 animate-in fade-in duration-300">
-          {/* Active Reminders Manager Widget (renders inside system tab) */}
-          {activeTab === "system" && !search && (
-            <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/40 border border-gray-200/80 dark:border-neutral-800/80 rounded-3xl backdrop-blur-md">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <i className="hgi hgi-stroke hgi-clock-02 text-gray-400 text-lg"></i>
-                  <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
-                    lightweight reminders
-                  </h4>
-                </div>
-                {reminders.length > 0 && (
-                  <button
-                    disabled={!!executing}
-                    onClick={handleClearAllReminders}
-                    className="cursor-pointer text-[10px] font-product-sans font-bold text-red-500 hover:text-red-600 transition-colors uppercase border border-red-500/10 hover:border-red-500/30 px-3 py-1 rounded-full bg-red-500/5 hover:bg-red-500/10"
-                  >
-                    clear all
-                  </button>
-                )}
-              </div>
 
-              {/* Set Reminder Form */}
-              <form onSubmit={handleSetReminder} className="flex gap-2 items-center">
-                <input
-                  type="number"
-                  placeholder="min"
-                  min="1"
-                  max="1440"
-                  value={reminderMinutes || ""}
-                  onChange={(e) => setReminderMinutes(parseInt(e.target.value))}
-                  className="bg-transparent border border-gray-200 dark:border-neutral-800 rounded-full px-4 h-9 text-xs font-product-sans text-gray-900 dark:text-gray-100 focus:outline-none focus:border-accent/30 transition-all w-16 text-center"
-                />
-                <input
-                  type="text"
-                  placeholder="what should we remind you of?"
-                  value={reminderMsg}
-                  onChange={(e) => setReminderMsg(e.target.value)}
-                  className="flex-1 bg-transparent border border-gray-200 dark:border-neutral-800 rounded-full px-4 h-9 text-xs font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-400/60 focus:outline-none focus:border-accent/30 transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={!!executing || !reminderMinutes}
-                  className="cursor-pointer flex items-center justify-center w-9 h-9 rounded-full bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 hover:border-accent/30 transition-all"
-                >
-                  {executing === "set-reminder" ? (
-                    <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <i className="hgi hgi-stroke hgi-plus text-sm"></i>
-                  )}
-                </button>
-              </form>
-
-              {/* Quick select presets */}
-              <div className="flex gap-1.5 flex-wrap">
-                {[5, 10, 15, 30, 45, 60].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setReminderMinutes(t)}
-                    className={`cursor-pointer px-3 py-1 rounded-full text-[10px] font-product-sans font-bold border transition-all ${
-                      reminderMinutes === t
-                        ? "bg-accent/10 text-accent border-accent/20"
-                        : "border-gray-200 dark:border-neutral-800 text-gray-400 hover:border-gray-300 dark:hover:border-neutral-700"
-                    }`}
-                  >
-                    {t}m
-                  </button>
-                ))}
-              </div>
-
-              {/* Active Reminders List */}
-              {reminders.length > 0 ? (
-                <div className="flex flex-col gap-2 mt-2 border-t border-gray-100 dark:border-neutral-900 pt-3">
-                  {reminders.map((r) => {
-                    const remSec = r.remaining;
-                    const mins = Math.floor(remSec / 60);
-                    const secs = remSec % 60;
-                    const isBusy = executing === `clear-${r.timer}`;
-                    return (
-                      <div
-                        key={r.timer}
-                        className="flex items-center justify-between p-3 rounded-2xl bg-gray-100/40 dark:bg-neutral-900/60 border border-gray-200/50 dark:border-neutral-800/40"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-accent/5 flex items-center justify-center text-accent">
-                            <i className="hgi hgi-stroke hgi-clock-01 text-sm animate-pulse"></i>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate font-product-sans lowercase">
-                              {r.message || `${r.minutes}-minute reminder`}
-                            </p>
-                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-mono mt-0.5">
-                              scheduled from: {new Date(r.set_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-xs font-bold text-accent font-mono">
-                            {mins > 0 ? `${mins}m ${secs}s` : `${secs}s`}
-                          </span>
-                          <button
-                            disabled={!!executing}
-                            onClick={() => handleClearReminder(r.timer)}
-                            className="cursor-pointer w-7 h-7 rounded-full bg-red-500/5 border border-red-500/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 flex items-center justify-center transition-colors"
-                          >
-                            {isBusy ? (
-                              <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <i className="hgi hgi-stroke hgi-delete-02 text-xs"></i>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-[10px] font-product-sans font-bold text-gray-300 dark:text-neutral-700 uppercase tracking-widest text-center mt-1">
-                  no outstanding reminders
-                </p>
-              )}
-            </div>
-          )}
 
           {/* Theme Manager Widget (renders inside system tab) */}
           {activeTab === "system" && themeState && !search && (

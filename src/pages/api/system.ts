@@ -113,34 +113,22 @@ async function getRemindersState(): Promise<any[]> {
     : `/tmp/omarchy-reminders`;
 
   const script = `
-  timers=$(systemctl --user list-timers --all --no-legend --no-pager "omarchy-reminder-*.timer" 2>/dev/null | awk '{ print $(NF - 1) }')
-  uptime=$(awk '{ print int($1) }' /proc/uptime)
   reminder_dir="${reminderDir}"
-
-  parse_systemd_timespan() {
-    local timespan="$1"
-    local total=0
-    local value unit whole
-    while read -r value unit; do
-      whole=\${value%.*}
-      case $unit in
-      d) total=$((total + whole * 86400)) ;;
-      h) total=$((total + whole * 3600)) ;;
-      min) total=$((total + whole * 60)) ;;
-      s) total=$((total + whole)) ;;
-      esac
-    done < <(grep -oE '[0-9]+([.][0-9]+)?(d|h|min|s|ms|us)' <<<"$timespan" | sed -E 's/^([0-9.]+)([a-z]+)$/\\1 \\2/')
-    echo "$total"
-  }
 
   echo "["
   first=true
-  for timer in $timers; do
-    next=$(systemctl --user show -P NextElapseUSecMonotonic "$timer" 2>/dev/null || true)
-    [[ -z $next ]] && continue
-    next_seconds=$(parse_systemd_timespan "$next")
-    ((next_seconds <= uptime)) && continue
-    remaining=$((next_seconds - uptime))
+  systemctl --user list-timers --all --no-legend --no-pager --full "omarchy-reminder-*.timer" 2>/dev/null | while read -r day date time tz rest; do
+    [[ -z "$day" || "$day" == "n/a" ]] && continue
+
+    # Extract the timer name (second to last word)
+    timer=$(echo "$rest" | awk '{ print $(NF - 1) }')
+    [[ -z "$timer" ]] && continue
+
+    trigger_epoch=$(date -d "$day $date $time $tz" +%s 2>/dev/null || date -d "$day $date $time" +%s 2>/dev/null || echo 0)
+    current_epoch=$(date +%s)
+    remaining=$((trigger_epoch - current_epoch))
+    ((remaining <= 0)) && continue
+
     reminder=\${timer%.timer}
     reminder=\${reminder#omarchy-reminder-}
     set_at=\${reminder##*-}
