@@ -263,14 +263,22 @@ export default function AiVoiceAssistant({ isActive }) {
           // Instant Command execution
           const cmdMatch = fullContent.match(/\[\[EXEC_CMD:\s*(.*?)\s*\]\]/);
           if (cmdMatch && !processedActions.has("exec_cmd")) {
-            const command = cmdMatch[1].trim();
+            const fullStr = cmdMatch[1].trim();
+            const parts = fullStr.split(/\s+/);
+            const cmdName = parts[0];
+            const cmdArgs = parts.slice(1);
+
             const fullName =
-              scripts.find((s) => s.name.includes(command))?.name ||
-              `omarchy-${command}`;
+              scripts.find((s) => s.name.includes(cmdName))?.name ||
+              `omarchy-${cmdName}`;
             fetch("/api/system", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "bin", command: fullName }),
+              body: JSON.stringify({
+                action: "bin",
+                command: fullName,
+                args: cmdArgs,
+              }),
             });
             processedActions.add("exec_cmd");
           }
@@ -345,9 +353,9 @@ export default function AiVoiceAssistant({ isActive }) {
           <button
             onClick={toggleListening}
             disabled={loading}
-            className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl cursor-pointer ${isListening
-                ? "bg-accent text-white scale-110 shadow-accent/40"
-                : "bg-white dark:bg-neutral-900 text-gray-400 dark:text-neutral-500 hover:text-accent hover:border-accent/30 border border-gray-100 dark:border-neutral-800"
+            className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 cursor-pointer ${isListening
+              ? "bg-accent text-white scale-110"
+              : "bg-white dark:bg-neutral-900 text-gray-400 dark:text-neutral-500 hover:text-accent hover:border-accent/30 border border-gray-100 dark:border-neutral-800"
               }`}
           >
             <i
@@ -359,7 +367,7 @@ export default function AiVoiceAssistant({ isActive }) {
         {(isListening || transcript || aiResponse || error || loading) && (
           <button
             onClick={handleCancel}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-950 text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-600 hover:text-red-500 hover:bg-red-500/10 border border-gray-200 dark:border-neutral-800 transition-all duration-300 animate-in fade-in slide-in-from-top-2 cursor-pointer uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-950 text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-600 hover:text-red-500 hover:bg-red-500/10 border border-gray-200 dark:border-neutral-800 transition-all duration-300 animate-in fade-in slide-in-from-top-2 cursor-pointer  st"
           >
             <i className="hgi hgi-stroke hgi-cancel-01 text-xs"></i>
             cancel
@@ -369,7 +377,7 @@ export default function AiVoiceAssistant({ isActive }) {
 
       <div className="flex flex-col items-center gap-4 text-center max-w-lg px-4">
         <div className="flex flex-col items-center gap-2">
-          <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans uppercase tracking-[0.2em]">
+          <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans  tracking-[0.2em]">
             {isListening ? (
               <span className="flex items-center gap-2 animate-pulse text-accent">
                 <i className="hgi-stroke hgi-cleaning-01 text-xs"></i>
@@ -401,13 +409,13 @@ export default function AiVoiceAssistant({ isActive }) {
         )}
 
         {error && (
-          <p className="text-xs text-red-500 font-bold uppercase tracking-widest mt-2">
+          <p className="text-xs text-red-500 font-bold  st mt-2">
             {error}
           </p>
         )}
 
         {!isListening && !loading && !transcript && (
-          <p className="text-[10px] text-gray-400 dark:text-neutral-600 uppercase tracking-[0.3em] font-bold">
+          <p className="text-[10px] text-gray-400 dark:text-neutral-600  tracking-[0.3em] font-bold">
             Click the mic and say a command
           </p>
         )}

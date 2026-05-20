@@ -84,6 +84,7 @@ const AT_COMMANDS = [
   },
   { name: "notes", description: "Notes", icon: "hgi-note" },
   { name: "tasks", description: "Tasks", icon: "hgi-task-01" },
+  { name: "links", description: "Link Vault", icon: "hgi-link-02" },
 ];
 
 export default function ChatInput({
@@ -356,12 +357,8 @@ export default function ChatInput({
         setSelectedTabIndex((prev) => (prev > 0 ? prev - 1 : -1));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (
-          selectedTabIndex >= 0 &&
-          selectedTabIndex < filteredTabCommands.length
-        ) {
-          executeCommand(filteredTabCommands[selectedTabIndex], "tab");
-        }
+        const idx = selectedTabIndex >= 0 ? selectedTabIndex : 0;
+        executeCommand(filteredTabCommands[idx], "tab");
       }
       return;
     }
@@ -378,12 +375,8 @@ export default function ChatInput({
         setSelectedDollarIndex((prev) => (prev > 0 ? prev - 1 : -1));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (
-          selectedDollarIndex >= 0 &&
-          selectedDollarIndex < filteredDollarCommands.length
-        ) {
-          executeCommand(filteredDollarCommands[selectedDollarIndex], "dollar");
-        }
+        const idx = selectedDollarIndex >= 0 ? selectedDollarIndex : 0;
+        executeCommand(filteredDollarCommands[idx], "dollar");
       }
       return;
     }
@@ -400,10 +393,10 @@ export default function ChatInput({
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < filteredCommands.length) {
-          executeCommand(filteredCommands[selectedIndex], "slash");
-        }
+        const idx = selectedIndex >= 0 ? selectedIndex : 0;
+        executeCommand(filteredCommands[idx], "slash");
       }
+      return;
     }
   };
 
@@ -494,7 +487,7 @@ export default function ChatInput({
       >
         <form onSubmit={handleAddCommand} className="flex flex-col gap-4">
           <div>
-            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans uppercase tracking-widest block mb-2">
+            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2">
               Name
             </label>
             <input
@@ -509,7 +502,7 @@ export default function ChatInput({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans uppercase tracking-widest block mb-2">
+            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2">
               URL
             </label>
             <input
@@ -530,13 +523,13 @@ export default function ChatInput({
                 setShowAddModal(false);
                 setNewCommand({ name: "", url: "" });
               }}
-              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-200 dark:border-neutral-800 rounded-full hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-neutral-700 transition-all duration-300 uppercase cursor-pointer"
+              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-200 dark:border-neutral-800 rounded-full hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-neutral-700 transition-all duration-300  cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-white bg-accent border border-accent rounded-full hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/20 transition-all duration-300 uppercase cursor-pointer"
+              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-white bg-accent border border-accent rounded-full hover:bg-accent/90 transition-all duration-300  cursor-pointer"
             >
               Add
             </button>
@@ -545,7 +538,7 @@ export default function ChatInput({
 
         {customCommands.length > 0 && (
           <div className="mt-6 pt-4 border-t border-gray-100 dark:border-neutral-900">
-            <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans uppercase tracking-widest mb-3">
+            <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st mb-3">
               Your Links
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -576,7 +569,7 @@ export default function ChatInput({
         <div className="fixed top-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-[100]">
           <form
             onSubmit={handleSend}
-            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[32px] p-1.5 px-4 shadow-2xl"
+            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[32px] p-1.5 px-4"
           >
             <button
               type="button"
@@ -643,7 +636,7 @@ export default function ChatInput({
               <button
                 type="submit"
                 disabled={loading || !input.trim() || view === "history"}
-                className="w-8 h-8 bg-accent hover:shadow-lg hover:shadow-accent/20 text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 flex-shrink-0 cursor-pointer active:scale-95"
+                className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 flex-shrink-0 cursor-pointer active:scale-95"
               >
                 <i
                   className={`hgi-stroke ${loading ? "hgi-loading animate-spin" : "hgi-sent"} text-sm`}
@@ -675,7 +668,7 @@ export default function ChatInput({
                   ref={selectedDollarIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "dollar")}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedDollarIndex === index
-                    ? "bg-accent text-white shadow-lg animate-pulse"
+                    ? "bg-accent text-white animate-pulse"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
                 >
@@ -698,7 +691,7 @@ export default function ChatInput({
                   ref={selectedTabIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "tab")}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedTabIndex === index
-                    ? "bg-accent text-white shadow-lg"
+                    ? "bg-accent text-white"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
                 >
@@ -733,7 +726,7 @@ export default function ChatInput({
                   ref={selectedIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd)}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${selectedIndex === index
-                    ? "bg-accent text-white shadow-lg"
+                    ? "bg-accent text-white"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
                 >
@@ -743,14 +736,10 @@ export default function ChatInput({
             </div>
           )}
 
-          {/* Active Reminder Setup - Duration pills */}
           {isReminderActive && reminderSetupStep === "duration" && (
-            <div className={`mt-2 flex flex-col gap-3 p-4 bg-white/95 dark:bg-black/90 backdrop-blur-md border rounded-[24px] shadow-xl animate-in slide-in-from-top-4 duration-300 transition-all ${reminderSetupStep === "duration"
-              ? "border-accent/40 shadow-lg shadow-accent/5 ring-1 ring-accent/20"
-              : "border-gray-200 dark:border-white/10"
-              }`}>
+            <div className="mt-2 flex flex-col gap-3 p-4 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[24px] animate-in slide-in-from-top-4 duration-300 transition-all">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest px-1">
+                <span className="text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-500  st px-1">
                   select duration
                 </span>
                 {status.message && (
@@ -786,7 +775,7 @@ export default function ChatInput({
                         className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all flex items-center justify-center ${isFocused
                           ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
                           : isCustomActive
-                            ? "bg-accent/15 border-accent/25 text-accent shadow-sm"
+                            ? "bg-accent/15 border-accent/25 text-accent"
                             : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
                           }`}
                       >
@@ -833,7 +822,7 @@ export default function ChatInput({
                         setTimeout(() => inputRef.current?.focus(), 50);
                       }}
                       className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all ${isSelected
-                        ? "bg-accent/15 text-accent border-accent/25 shadow-sm"
+                        ? "bg-accent/15 text-accent border-accent/25"
                         : isFocused
                           ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
                           : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
@@ -848,10 +837,10 @@ export default function ChatInput({
           )}
 
           {showMenu && (
-            <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
+            <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
-                  <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2 uppercase tracking-widest">
+                  <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                     <i className="hgi-stroke hgi-brain text-xs"></i>
                     engine
                   </h4>
@@ -879,7 +868,7 @@ export default function ChatInput({
 
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col gap-3">
-                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2 uppercase tracking-widest">
+                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                       <i className="hgi-stroke hgi-globe text-xs"></i>
                       capabilities
                     </h4>
@@ -904,7 +893,7 @@ export default function ChatInput({
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2 uppercase tracking-widest">
+                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                       <i className="hgi-stroke hgi-analytics-up text-xs"></i>
                       resources
                     </h4>
@@ -938,7 +927,7 @@ export default function ChatInput({
                           console.error("Failed to sign out from Puter", e);
                         }
                       }}
-                      className="cursor-pointer mt-2 flex items-center justify-center gap-2 p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/20 text-[10px] font-bold font-product-sans uppercase tracking-widest"
+                      className="cursor-pointer mt-2 flex items-center justify-center gap-2 p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/20 text-[10px] font-bold font-product-sans  st"
                     >
                       <i className="hgi-stroke hgi-logout-02 text-xs"></i>
                       Logout Puter
@@ -948,6 +937,32 @@ export default function ChatInput({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Universal Floating Toast/Notification (Shadcn UI style) */}
+      {status.message && (
+        <div className="fixed bottom-6 right-6 z-[999] animate-in slide-in-from-bottom-5 duration-300">
+          <div className="w-[360px] p-4 rounded-xl border flex items-start gap-3 backdrop-blur-md bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold leading-none lowercase">
+                {status.type === "success" ? "success" : status.type === "error" ? "error" : "system"}
+              </p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed font-product-sans">
+                {status.message}
+              </p>
+            </div>
+            {status.type === "info" && (
+              <div className="w-3.5 h-3.5 border-2 border-t-transparent border-accent rounded-full animate-spin shrink-0 mt-0.5"></div>
+            )}
+            <button
+              onClick={() => setStatus({ type: null, message: "" })}
+              className="text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors shrink-0 p-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+              title="Close toast"
+            >
+              <i className="hgi hgi-stroke hgi-cancel-01 text-[10px]"></i>
+            </button>
+          </div>
         </div>
       )}
     </>

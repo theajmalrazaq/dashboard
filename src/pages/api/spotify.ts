@@ -118,6 +118,10 @@ export const POST: APIRoute = async ({ request, url }) => {
       }
     } else if (command === "next") run("playerctl -p spotify next");
     else if (command === "prev") run("playerctl -p spotify previous");
+    else if (command === "volup") run("playerctl -p spotify volume 0.1+");
+    else if (command === "voldown") run("playerctl -p spotify volume 0.1-");
+    else if (command === "seekforward") run("playerctl -p spotify position 10+");
+    else if (command === "seekbackward") run("playerctl -p spotify position 10-");
     else if (command === "open") {
       asyncRun(
         'sh -c "spotify & sleep 1.5 && hyprctl dispatch movetoworkspacesilent special,class:spotify"',

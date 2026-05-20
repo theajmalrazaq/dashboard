@@ -36,7 +36,7 @@ export default function DashboardModal({
       <div className="absolute inset-0" onClick={onClose}></div>
 
       <div
-        className={`w-full ${maxWidth} bg-white dark:bg-black border border-gray-100 dark:border-neutral-900 rounded-[32px] sm:rounded-[40px] ${padding} flex flex-col gap-6 animate-in slide-in-from-bottom-10 duration-500 shadow-2xl relative z-10 overflow-hidden`}
+        className={`w-full ${maxWidth} bg-white dark:bg-black border border-gray-100 dark:border-neutral-900 rounded-[32px] sm:rounded-[40px] ${padding} flex flex-col gap-6 animate-in slide-in-from-bottom-10 duration-500 relative z-10 overflow-hidden`}
       >
         {!hideHeader && (
           <div className="flex items-start justify-between">

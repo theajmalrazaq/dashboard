@@ -65,7 +65,7 @@ export default function ClipboardManager({ clipboardData }) {
           <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent">
             <i className="hgi-stroke hgi-copy-01 text-sm"></i>
           </div>
-          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest font-product-sans">
+          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500  st font-product-sans">
             active content
           </span>
         </div>
@@ -116,7 +116,7 @@ export default function ClipboardManager({ clipboardData }) {
 
               <div className="flex-1 min-w-0">
                 {item.type === "file" ? (
-                  <div className="mb-2 rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800 bg-black/5 dark:bg-white/5 max-w-[200px] aspect-video shadow-sm">
+                  <div className="mb-2 rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800 bg-black/5 dark:bg-white/5 max-w-[200px] aspect-video">
                     <img
                       src={`/api/system?action=file-proxy&path=${encodeURIComponent(item.preview)}`}
                       alt="Clipboard screenshot"
@@ -135,14 +135,14 @@ export default function ClipboardManager({ clipboardData }) {
                       ? `Image File: ${item.preview.split("/").pop()}`
                       : item.preview}
                   </p>
-                  <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5 uppercase tracking-widest font-bold">
+                  <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5  st font-bold">
                     {item.type}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase shrink-0">
+                <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  shrink-0">
                   {item.subtext.split(" ").slice(1, 3).join(" ")}
                 </span>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

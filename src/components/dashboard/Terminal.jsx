@@ -163,7 +163,7 @@ export default function Terminal({ isActive }) {
 
   return (
     <div
-      className="w-full max-w-4xl mx-auto h-[450px] bg-black/90 dark:bg-black/95 border border-gray-200/20 dark:border-neutral-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700"
+      className="w-full max-w-4xl mx-auto h-[450px] bg-black/90 dark:bg-black/95 border border-gray-200/20 dark:border-neutral-800 rounded-3xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700"
       onClick={() => inputRef.current?.focus()}
     >
       {/* Terminal Header */}
@@ -197,7 +197,7 @@ export default function Terminal({ isActive }) {
           {executing && (
             <div className="w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
           )}
-          <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest font-bold">
+          <span className="text-[10px] font-mono text-gray-600  st font-bold">
             bash
           </span>
         </div>
@@ -252,7 +252,7 @@ export default function Terminal({ isActive }) {
         </div>
       </div>
 
-      <div className="px-6 py-3 bg-black/50 border-t border-white/5 text-[9px] text-gray-600 font-mono uppercase tracking-widest flex items-center justify-between">
+      <div className="px-6 py-3 bg-black/50 border-t border-white/5 text-[9px] text-gray-600 font-mono  st flex items-center justify-between">
         <span>omarchy shell control</span>
         <span className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>

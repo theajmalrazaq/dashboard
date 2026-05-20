@@ -357,8 +357,8 @@ export default function PersonalVault({
         typeof response === "string"
           ? response
           : response.message?.content ||
-            response.text ||
-            JSON.stringify(response);
+          response.text ||
+          JSON.stringify(response);
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("Invalid AI response");
       const data = JSON.parse(jsonMatch[0]);
@@ -398,8 +398,8 @@ export default function PersonalVault({
         typeof response === "string"
           ? response
           : response.message?.content ||
-            response.text ||
-            JSON.stringify(response);
+          response.text ||
+          JSON.stringify(response);
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error("Invalid AI response");
       const data = JSON.parse(jsonMatch[0]);
@@ -460,11 +460,10 @@ export default function PersonalVault({
                 <button
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-product-sans font-bold transition-all duration-300 capitalize cursor-pointer ${
-                    activeSection === tab.id
-                      ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                      : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-product-sans font-bold transition-all duration-300 capitalize cursor-pointer ${activeSection === tab.id
+                    ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
                 >
                   <i className={`hgi-stroke ${tab.icon} text-base`}></i>
                   {tab.id}
@@ -504,11 +503,10 @@ export default function PersonalVault({
                     <button
                       key={f}
                       onClick={() => setTodoFilter(f)}
-                      className={`px-3 py-1 text-[10px] font-product-sans font-bold border transition-all rounded-full uppercase tracking-tight cursor-pointer ${
-                        todoFilter === f
-                          ? "bg-accent/10 border-accent/20 text-accent font-bold"
-                          : "bg-transparent border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      }`}
+                      className={`px-3 py-1 text-[10px] font-product-sans font-bold border transition-all rounded-full  tracking-tight cursor-pointer ${todoFilter === f
+                        ? "bg-accent/10 border-accent/20 text-accent font-bold"
+                        : "bg-transparent border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        }`}
                     >
                       {f}
                     </button>
@@ -535,7 +533,7 @@ export default function PersonalVault({
                     <button
                       type="submit"
                       disabled={!newTodo.trim()}
-                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 disabled:opacity-30 uppercase"
+                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 disabled:opacity-30 "
                     >
                       <i className="hgi-stroke hgi-plus text-sm"></i>
                       <span>Add</span>
@@ -544,7 +542,7 @@ export default function PersonalVault({
                       type="button"
                       onClick={(e) => generateTasks(e)}
                       disabled={aiProcessing || !newTodo.trim()}
-                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-xs font-product-sans font-bold text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-accent/20 hover:border-accent/40 disabled:opacity-30 uppercase"
+                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-xs font-product-sans font-bold text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-accent/20 hover:border-accent/40 disabled:opacity-30 "
                     >
                       {aiProcessing ? (
                         <span className="w-3.5 h-3.5 border-2 border-accent border-t-transparent rounded-full animate-spin"></span>
@@ -613,7 +611,7 @@ export default function PersonalVault({
                       <span className="text-gray-200 dark:text-neutral-800 text-xs">
                         ·
                       </span>
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-600 font-product-sans uppercase">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-600 font-product-sans ">
                         {editingNote?.id
                           ? `Last saved: ${new Date(editingNote.updated_at).toLocaleDateString()}`
                           : "New Entry"}
@@ -651,14 +649,14 @@ export default function PersonalVault({
                       <button
                         onClick={() => setEditingNote(null)}
                         disabled={saving}
-                        className="px-4 py-2 text-[11px] font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-product-sans uppercase disabled:opacity-50 cursor-pointer"
+                        className="px-4 py-2 text-[11px] font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-product-sans  disabled:opacity-50 cursor-pointer"
                       >
                         discard
                       </button>
                       <button
                         onClick={saveNote}
                         disabled={saving}
-                        className="cursor-pointer inline-flex items-center gap-2 px-5 py-2 text-[11px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 uppercase disabled:opacity-50 min-w-[120px] justify-center"
+                        className="cursor-pointer inline-flex items-center gap-2 px-5 py-2 text-[11px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30  disabled:opacity-50 min-w-[120px] justify-center"
                       >
                         {saving ? (
                           <span className="w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin"></span>
@@ -722,7 +720,7 @@ export default function PersonalVault({
                             note.tags.slice(0, 1).map((tag) => (
                               <span
                                 key={tag}
-                                className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-accent/10 text-accent border border-accent/20 uppercase"
+                                className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-accent/10 text-accent border border-accent/20 "
                               >
                                 {tag}
                               </span>
@@ -739,7 +737,7 @@ export default function PersonalVault({
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
+                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
                           {new Date(
                             note.updated_at || note.created_at,
                           ).toLocaleDateString("en-US", {
@@ -846,14 +844,14 @@ export default function PersonalVault({
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setSubtaskModal(null)}
-              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer uppercase tracking-wider"
+              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
             >
               cancel
             </button>
             <button
               onClick={confirmAddSubtask}
               disabled={!subtaskInput.trim()}
-              className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-wider"
+              className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 disabled:opacity-30 disabled:cursor-not-allowed  r"
             >
               <i className="hgi-stroke hgi-plus text-xs text-accent"></i>
               <span>add item</span>
@@ -878,17 +876,16 @@ export default function PersonalVault({
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setConfirmModal(null)}
-              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer uppercase tracking-wider"
+              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
             >
               cancel
             </button>
             <button
               onClick={() => confirmModal?.onConfirm()}
-              className={`cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold rounded-full transition-all duration-300 border uppercase tracking-wider ${
-                confirmModal?.type === "danger"
-                  ? "text-red-500 hover:bg-red-500/10 border-red-500/20 hover:border-red-500/40"
-                  : "text-accent hover:bg-accent/10 border-accent/20 hover:border-accent/40"
-              }`}
+              className={`cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold rounded-full transition-all duration-300 border  r ${confirmModal?.type === "danger"
+                ? "text-red-500 hover:bg-red-500/10 border-red-500/20 hover:border-red-500/40"
+                : "text-accent hover:bg-accent/10 border-accent/20 hover:border-accent/40"
+                }`}
             >
               <span>{confirmModal?.confirmText || "confirm"}</span>
             </button>
@@ -925,11 +922,10 @@ const TodoItem = memo(
             <button
               onClick={() => onToggle(rootTodo, todo.id, isRoot)}
               disabled={togglingId === todo.id}
-              className={`cursor-pointer w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 ${
-                todo.completed
-                  ? "bg-accent border-accent text-white"
-                  : "border-gray-200 dark:border-neutral-800 hover:border-accent"
-              } ${togglingId === todo.id ? "opacity-50" : ""}`}
+              className={`cursor-pointer w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-500 shrink-0 ${todo.completed
+                ? "bg-accent border-accent text-white"
+                : "border-gray-200 dark:border-neutral-800 hover:border-accent"
+                } ${togglingId === todo.id ? "opacity-50" : ""}`}
             >
               {togglingId === todo.id ? (
                 <span
@@ -945,11 +941,10 @@ const TodoItem = memo(
 
           <div className="flex-1 min-w-0">
             <p
-              className={`font-product-sans text-sm font-bold transition-all duration-500 truncate ${
-                todo.completed
-                  ? "text-gray-400 dark:text-neutral-600 line-through"
-                  : "text-gray-900 dark:text-gray-100"
-              }`}
+              className={`font-product-sans text-sm font-bold transition-all duration-500 truncate ${todo.completed
+                ? "text-gray-400 dark:text-neutral-600 line-through"
+                : "text-gray-900 dark:text-gray-100"
+                }`}
             >
               {todo.text}
             </p>
@@ -964,7 +959,7 @@ const TodoItem = memo(
               className="p-2 text-gray-400 hover:text-accent transition-colors shrink-0 cursor-pointer"
               title="Add subtask"
             >
-              <i class="hgi hgi-stroke hgi-plus-sign-square"></i>
+              <i className="hgi hgi-stroke hgi-plus-sign-square"></i>
             </button>
             <button
               onClick={(e) => {

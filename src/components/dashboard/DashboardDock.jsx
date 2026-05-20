@@ -74,7 +74,7 @@ export default function DashboardDock() {
       const parsed = new URL(url);
       const hostname = parsed.hostname.replace("www.", "");
       const name = hostname.split(".")[0];
-      const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
+      const capitalizedName = name.charAt(0).to() + name.slice(1);
 
       const link = {
         id: Date.now(),

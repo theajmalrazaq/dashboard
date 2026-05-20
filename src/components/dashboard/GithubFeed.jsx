@@ -137,7 +137,7 @@ export default function GithubFeed() {
           {summarizing && (
             <div className="flex items-center gap-2 px-3 py-1 bg-violet-500/5 border border-violet-500/20 rounded-full">
               <span className="w-2 h-2 border border-violet-500 border-t-transparent rounded-full animate-spin"></span>
-              <span className="text-[9px] font-bold text-violet-500 font-product-sans uppercase tracking-wider">
+              <span className="text-[9px] font-bold text-violet-500 font-product-sans  r">
                 AI Thinking...
               </span>
             </div>
@@ -214,7 +214,7 @@ export default function GithubFeed() {
             </div>
 
             <div className="flex items-center shrink-0">
-              <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase">
+              <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans ">
                 {timeAgo(entry.published)}
               </span>
             </div>

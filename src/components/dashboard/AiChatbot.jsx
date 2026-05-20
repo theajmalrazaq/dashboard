@@ -408,14 +408,22 @@ export default function AiChatbot({
           // Instant Command execution
           const cmdMatch = fullContent.match(/\[\[EXEC_CMD:\s*(.*?)\s*\]\]/);
           if (cmdMatch && !processedActions.has("exec_cmd")) {
-            const command = cmdMatch[1].trim();
+            const fullStr = cmdMatch[1].trim();
+            const parts = fullStr.split(/\s+/);
+            const cmdName = parts[0];
+            const cmdArgs = parts.slice(1);
+
             const fullName =
-              scripts.find((s) => s.name.includes(command))?.name ||
-              `omarchy-${command}`;
+              scripts.find((s) => s.name.includes(cmdName))?.name ||
+              `omarchy-${cmdName}`;
             fetch("/api/system", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "bin", command: fullName }),
+              body: JSON.stringify({
+                action: "bin",
+                command: fullName,
+                args: cmdArgs,
+              }),
             });
             processedActions.add("exec_cmd");
           }
@@ -565,12 +573,12 @@ export default function AiChatbot({
       {/* Action Review Modal */}
       {notificationAction && (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-lg bg-white dark:bg-black border-t sm:border border-gray-100 dark:border-neutral-900 rounded-t-[32px] sm:rounded-[40px] p-8 flex flex-col gap-6 animate-in slide-in-from-bottom-10 duration-500 shadow-2xl">
+          <div className="w-full max-w-lg bg-white dark:bg-black border-t sm:border border-gray-100 dark:border-neutral-900 rounded-t-[32px] sm:rounded-[40px] p-8 flex flex-col gap-6 animate-in slide-in-from-bottom-10 duration-500">
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-product-sans">
                 Review {notificationAction.type === "note" ? "Note" : "Tasks"}
               </h3>
-              <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans uppercase tracking-[0.2em] mt-1">
+              <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans  tracking-[0.2em] mt-1">
                 Preview your{" "}
                 {notificationAction.type === "note" ? "thought" : "items"}{" "}
                 before saving
@@ -633,13 +641,13 @@ export default function AiChatbot({
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setNotificationAction(null)}
-                className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all uppercase tracking-widest cursor-pointer"
+                className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all  st cursor-pointer"
               >
                 discard
               </button>
               <button
                 onClick={confirmPendingAction}
-                className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 uppercase tracking-[0.1em]"
+                className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30  tracking-[0.1em]"
               >
                 <i className="hgi-stroke hgi-tick-01 text-sm text-accent"></i>
                 <span>deploy to vault</span>
@@ -679,7 +687,7 @@ export default function AiChatbot({
                   <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm">
                     {s.title}
                   </h3>
-                  <p className="text-[10px] text-gray-400 font-bold font-product-sans uppercase">
+                  <p className="text-[10px] text-gray-400 font-bold font-product-sans ">
                     {new Date(s.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -715,8 +723,8 @@ export default function AiChatbot({
             >
               <div
                 className={`max-w-[85%] text-sm font-product-sans leading-relaxed transition-all duration-300 ${m.role === "user"
-                    ? "px-4 py-2 rounded-2xl bg-accent text-white shadow-lg shadow-accent/10"
-                    : "text-gray-900 dark:text-gray-100"
+                  ? "px-4 py-2 rounded-2xl bg-accent text-white"
+                  : "text-gray-900 dark:text-gray-100"
                   }`}
               >
                 <div

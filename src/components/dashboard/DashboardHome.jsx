@@ -11,6 +11,7 @@ import Terminal from "./Terminal";
 import ClipboardManager from "./ClipboardManager";
 import AiVoiceAssistant from "./AiVoiceAssistant";
 import ChatInput from "./ChatInput";
+import LinkVault from "./LinkVault";
 import { FlickeringGrid } from "../ui/FlickeringGrid";
 
 // 7-Segment Clock Constants
@@ -440,116 +441,8 @@ export default function DashboardHome() {
     reminders: [],
   });
 
-  const [reminders, setReminders] = useState([]);
-  const [reminderMinutes, setReminderMinutes] = useState(5);
-  const [reminderMsg, setReminderMsg] = useState("");
   const [executing, setExecuting] = useState(null);
   const [status, setStatus] = useState({ type: null, message: "" });
-
-  useEffect(() => {
-    if (systemData.reminders) {
-      setReminders(systemData.reminders);
-    }
-  }, [systemData.reminders]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setReminders((prev) =>
-        prev
-          .map((r) => {
-            const elapsed = Math.floor(Date.now() / 1000) - r.set_at;
-            const remaining = Math.max(r.duration_seconds - elapsed, 0);
-            return { ...r, remaining };
-          })
-          .filter((r) => r.remaining > 0)
-      );
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleSetReminder = async (e) => {
-    if (e) e.preventDefault();
-    if (!reminderMinutes || reminderMinutes <= 0) return;
-
-    setExecuting("set-reminder");
-    setStatus({ type: "info", message: "setting reminder..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: "omarchy-reminder",
-          action: "bin",
-          args: [reminderMinutes.toString(), reminderMsg],
-        }),
-      });
-      const result = await res.json();
-      if (result.success || res.status === 200) {
-        setStatus({ type: "success", message: "reminder set!" });
-        setReminderMsg("");
-      } else {
-        setStatus({ type: "error", message: `failed: ${result.error || "unknown"}` });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
-
-  const handleClearReminder = async (timerName) => {
-    setExecuting(`clear-${timerName}`);
-    setStatus({ type: "info", message: "clearing reminder..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: `systemctl --user stop ${timerName}`,
-          action: "exec",
-        }),
-      });
-      const result = await res.json();
-      if (result.success || res.status === 200) {
-        setStatus({ type: "success", message: "reminder cleared!" });
-      } else {
-        setStatus({ type: "error", message: "failed to clear reminder" });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
-
-  const handleClearAllReminders = async () => {
-    setExecuting("clear-all-reminders");
-    setStatus({ type: "info", message: "clearing all reminders..." });
-    try {
-      const res = await fetch("/api/system", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          command: "omarchy-reminder",
-          action: "bin",
-          args: ["clear"],
-        }),
-      });
-      const result = await res.json();
-      if (result.success || res.status === 200) {
-        setStatus({ type: "success", message: "all reminders cleared!" });
-      } else {
-        setStatus({ type: "error", message: "failed to clear reminders" });
-      }
-    } catch {
-      setStatus({ type: "error", message: "network error." });
-    } finally {
-      setExecuting(null);
-      setTimeout(() => setStatus({ type: null, message: "" }), 5000);
-    }
-  };
 
   // Single persistent Server-Sent Events (SSE) stream connection
   useEffect(() => {
@@ -614,7 +507,7 @@ export default function DashboardHome() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle Spacebar to Play/Pause Spotify on Home View
+  // Handle Spacebar & Arrow keys to control Spotify on Home View
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Only trigger if we are on the home view (no active tab)
@@ -643,6 +536,52 @@ export default function DashboardHome() {
           },
           body: JSON.stringify({ command: "playpause" }),
         }).catch((err) => console.error("Failed to toggle Spotify play/pause", err));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault(); // Prevent page scrolling
+        const command = e.shiftKey ? "seekforward" : "next";
+        // Call the Spotify API command
+        fetch(`/api/spotify?command=${command}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command }),
+        }).catch((err) => console.error(`Failed to execute Spotify ${command}`, err));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault(); // Prevent page scrolling
+        const command = e.shiftKey ? "seekbackward" : "prev";
+        // Call the Spotify API command
+        fetch(`/api/spotify?command=${command}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command }),
+        }).catch((err) => console.error(`Failed to execute Spotify ${command}`, err));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault(); // Prevent page scrolling
+        // Call the Spotify API volup command
+        fetch("/api/spotify?command=volup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command: "volup" }),
+        }).catch((err) => console.error("Failed to increase Spotify volume", err));
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault(); // Prevent page scrolling
+        // Call the Spotify API voldown command
+        fetch("/api/spotify?command=voldown", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ command: "voldown" }),
+        }).catch((err) => console.error("Failed to decrease Spotify volume", err));
       }
     };
 
@@ -814,23 +753,21 @@ export default function DashboardHome() {
       </div>
 
       <div
-        className={`relative w-full px-4 pb-16 ${
-          activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-28 sm:pt-32"
-        } mx-auto flex flex-col z-10`}
+        className={`relative w-full px-4 pb-16 ${activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-28 sm:pt-32"
+          } mx-auto flex flex-col z-10`}
       >
         {/* Home View (Visible when no tab is selected) */}
         <div
-          className={`flex flex-col gap-8 transition-all duration-700 ease-in-out ${
-            activeTab
-              ? "opacity-0 invisible h-0 -mb-8 scale-95 overflow-hidden"
-              : "opacity-100 visible h-auto"
-          }`}
+          className={`flex flex-col gap-8 transition-all duration-700 ease-in-out ${activeTab
+            ? "opacity-0 invisible h-0 -mb-8 scale-95 overflow-hidden"
+            : "opacity-100 visible h-auto"
+            }`}
         >
           <div className="flex flex-col items-center justify-center pt-12 sm:pt-16 -mb-4">
             <div className="relative w-full flex justify-center">
               <SegmentClockDisplay />
             </div>
-            <p className="text-xs sm:text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans mt-4 text-center tracking-widest uppercase">
+            <p className="text-xs sm:text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans mt-4 text-center st ">
               {currentTime.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -841,100 +778,25 @@ export default function DashboardHome() {
 
           <SpotifyWidget spotifyState={systemData.spotify} />
 
-          {/* Active Reminders Manager Widget (moved from System Tab to Home view under Spotify player) */}
-          <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/10 border border-gray-100 dark:border-neutral-800/40 rounded-3xl transition-all duration-500 hover:border-accent/10 w-full max-w-xl mx-auto backdrop-blur-md relative">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <i className="hgi hgi-stroke hgi-clock-02 text-gray-400 text-lg animate-pulse"></i>
-                <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
-                  active reminders
-                </h4>
-              </div>
-              <div className="flex items-center gap-2">
-                {status.message && (
+          {systemData.reminders && systemData.reminders.length > 0 && (
+            <div className="flex flex-col items-center gap-2 mt-2 animate-in fade-in duration-500">
+              <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans st ">
+                upcoming reminders
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {systemData.reminders.map((rem) => (
                   <div
-                    className={`px-3 py-1 rounded-full border text-[9px] font-product-sans font-bold flex items-center gap-1.5 animate-in fade-in duration-200 ${
-                      status.type === "success"
-                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                        : status.type === "error"
-                          ? "bg-red-500/10 text-red-500 border-red-500/20"
-                          : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                    }`}
+                    key={rem.timer}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-50/60 dark:bg-neutral-900/30 border border-gray-100 dark:border-neutral-900/80 rounded-full text-xs font-product-sans"
                   >
-                    <span
-                      className={`w-1 h-1 rounded-full ${status.type === "success" ? "bg-emerald-500" : status.type === "error" ? "bg-red-500" : "bg-blue-500 animate-pulse"}`}
-                    ></span>
-                    {status.message}
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                    <span className="text-gray-900 dark:text-gray-100 font-bold lowercase">{rem.message}</span>
+                    <span className="text-gray-400 dark:text-neutral-500 font-bold">in {Math.ceil(rem.remaining / 60)}m</span>
                   </div>
-                )}
-                {reminders.length > 0 && (
-                  <button
-                    type="button"
-                    disabled={!!executing}
-                    onClick={handleClearAllReminders}
-                    className="cursor-pointer text-[10px] font-product-sans font-bold text-red-500 hover:text-red-600 transition-colors uppercase border border-red-500/10 hover:border-red-500/30 px-3 py-1 rounded-full bg-red-500/5 hover:bg-red-500/10"
-                  >
-                    clear all
-                  </button>
-                )}
+                ))}
               </div>
             </div>
-
-
-
-            {/* Active Reminders List */}
-            {reminders.length > 0 ? (
-              <div className="flex flex-col gap-2 mt-2 border-t border-gray-100 dark:border-neutral-900 pt-3">
-                {reminders.map((r) => {
-                  const remSec = r.remaining;
-                  const mins = Math.floor(remSec / 60);
-                  const secs = remSec % 60;
-                  const isBusy = executing === `clear-${r.timer}`;
-                  return (
-                    <div
-                      key={r.timer}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-gray-100/40 dark:bg-neutral-900/60 border border-gray-200/50 dark:border-neutral-800/40"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-accent/5 flex items-center justify-center text-accent">
-                          <i className="hgi hgi-stroke hgi-clock-01 text-sm animate-pulse"></i>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate font-product-sans lowercase">
-                            {r.message || `${r.minutes}-minute reminder`}
-                          </p>
-                          <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-mono mt-0.5">
-                            scheduled from: {new Date(r.set_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-xs font-bold text-accent font-mono">
-                          {mins > 0 ? `${mins}m ${secs}s` : `${secs}s`}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={!!executing}
-                          onClick={() => handleClearReminder(r.timer)}
-                          className="cursor-pointer w-7 h-7 rounded-full bg-red-500/5 border border-red-500/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 flex items-center justify-center transition-colors"
-                        >
-                          {isBusy ? (
-                            <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <i className="hgi hgi-stroke hgi-delete-02 text-xs"></i>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-[10px] font-product-sans font-bold text-gray-300 dark:text-neutral-700 uppercase tracking-widest text-center mt-1">
-                no outstanding reminders
-              </p>
-            )}
-          </div>
+          )}
         </div>
 
         <div className={activeTab ? "h-0" : "h-8"}></div>
@@ -965,11 +827,10 @@ export default function DashboardHome() {
                 onClick={() =>
                   setActiveTab(activeTab === tab.id ? null : tab.id)
                 }
-                className={`cursor-pointer flex items-center justify-center gap-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 outline-none ring-0 ${
-                  activeTab === tab.id
-                    ? "px-5 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                    : "w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
+                className={`cursor-pointer flex items-center justify-center gap-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 outline-none ring-0 ${activeTab === tab.id
+                  ? "px-5 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
+                  : "w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  }`}
               >
                 {tab.id === "terminal" ? (
                   <svg
@@ -1056,11 +917,10 @@ export default function DashboardHome() {
                             {post.title}
                           </h3>
                           <span
-                            className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold ${
-                              post.is_published
-                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                : "bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
-                            }`}
+                            className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold ${post.is_published
+                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              : "bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
+                              }`}
                           >
                             {post.is_published ? "live" : "draft"}
                           </span>
@@ -1070,7 +930,7 @@ export default function DashboardHome() {
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase">
+                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans ">
                           {new Date(post.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -1170,6 +1030,12 @@ export default function DashboardHome() {
           >
             <Terminal isActive={activeTab === "terminal"} />
           </div>
+
+          <div
+            className={activeTab === "links" ? "block text-left" : "hidden"}
+          >
+            <LinkVault isActive={activeTab === "links"} />
+          </div>
         </div>
       </div>
 
@@ -1219,7 +1085,7 @@ export default function DashboardHome() {
           onViewChange={handleOpenChatHistory}
           onTabChange={handleTabChange}
           onNewChat={handleNewChatFromHome}
-          onLoadPuter={() => {}}
+          onLoadPuter={() => { }}
         />
       )}
     </section>

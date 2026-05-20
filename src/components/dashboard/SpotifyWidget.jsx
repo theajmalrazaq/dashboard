@@ -91,7 +91,7 @@ export default function SpotifyWidget({ spotifyState }) {
             <h4 className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate font-product-sans">
               {track?.title || "Spotify Player"}
             </h4>
-            <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate font-product-sans uppercase mb-1">
+            <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate font-product-sans  mb-1">
               {track?.artist || "Standby Mode"}
             </p>
 

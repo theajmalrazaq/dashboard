@@ -26,11 +26,8 @@ const { images } = Astro.props;
           style={`--rotation: ${rotation}deg; --offset-y: ${offsetY}; --delay: ${index * 0.15}s`}
           data-index={index}
         >
-          <!-- Card Shadow/Glow -->
-          <div class="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2.1rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
           <!-- Image Container -->
-          <div class="relative overflow-hidden rounded-[2rem] backdrop-blur-sm transition-all duration-500 group-hover:shadow-2xl">
+          <div class="relative overflow-hidden rounded-[2rem] backdrop-blur-sm transition-all duration-500">
             <Image
               src={image.src}
               alt={image.alt}

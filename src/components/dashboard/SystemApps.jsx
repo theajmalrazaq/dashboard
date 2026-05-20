@@ -158,6 +158,12 @@ export default function SystemApps({
   // Premium integration local states
   const [theme, setTheme] = useState({ current: "", available: [] });
   const [powerProfile, setPowerProfile] = useState({ active: "", available: [] });
+  const [reminders, setReminders] = useState([]);
+
+  // Synchronize local states
+  useEffect(() => {
+    if (remindersState) setReminders(remindersState);
+  }, [remindersState]);
 
   // Synchronize local toggles with global SSE stream updates
   useEffect(() => {
@@ -260,6 +266,59 @@ export default function SystemApps({
   };
 
 
+
+  const handleCancelReminder = async (timerName) => {
+    setExecuting(`clear-${timerName}`);
+    setStatus({ type: "info", message: "canceling reminder..." });
+    try {
+      const res = await fetch("/api/system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "exec",
+          command: `systemctl --user stop ${timerName}`,
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setStatus({ type: "success", message: "reminder canceled!" });
+      } else {
+        setStatus({ type: "error", message: "failed to cancel reminder" });
+      }
+    } catch {
+      setStatus({ type: "error", message: "network error." });
+    } finally {
+      setExecuting(null);
+      setTimeout(() => setStatus({ type: null, message: "" }), 4000);
+    }
+  };
+
+  const handleClearAllReminders = async () => {
+    setExecuting("clear-all-reminders");
+    setStatus({ type: "info", message: "clearing all reminders..." });
+    try {
+      const res = await fetch("/api/system", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "bin",
+          command: "omarchy-reminder",
+          args: ["clear"],
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setStatus({ type: "success", message: "all reminders cleared!" });
+      } else {
+        setStatus({ type: "error", message: "failed to clear reminders" });
+      }
+    } catch {
+      setStatus({ type: "error", message: "network error." });
+    } finally {
+      setExecuting(null);
+      setTimeout(() => setStatus({ type: null, message: "" }), 4000);
+    }
+  };
 
   const handleToggle = async (scriptName) => {
     if (executing) return;
@@ -443,11 +502,10 @@ export default function SystemApps({
                 setActiveTab(cat.id);
                 setSearch("");
               }}
-              className={`flex items-center gap-2 px-5 py-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 cursor-pointer ${
-                activeTab === cat.id && !search
-                  ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 cursor-pointer ${activeTab === cat.id && !search
+                ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
+                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
             >
               <i className={`hgi hgi-stroke ${cat.icon} text-sm`}></i>
               {cat.name}
@@ -475,13 +533,12 @@ export default function SystemApps({
         <div className="flex items-center gap-2">
           {status.message && (
             <div
-              className={`px-3 py-1 rounded-full border text-[9px] font-product-sans font-bold flex items-center gap-1.5 animate-in fade-in duration-200 ${
-                status.type === "success"
-                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                  : status.type === "error"
-                    ? "bg-red-500/10 text-red-500 border-red-500/20"
-                    : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-              }`}
+              className={`px-3 py-1 rounded-full border text-[9px] font-product-sans font-bold flex items-center gap-1.5 animate-in fade-in duration-200 ${status.type === "success"
+                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                : status.type === "error"
+                  ? "bg-red-500/10 text-red-500 border-red-500/20"
+                  : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                }`}
             >
               <span
                 className={`w-1 h-1 rounded-full ${status.type === "success" ? "bg-emerald-500" : status.type === "error" ? "bg-red-500" : "bg-blue-500 animate-pulse"}`}
@@ -533,13 +590,12 @@ export default function SystemApps({
                       cx="32"
                       cy="32"
                       r="28"
-                      className={`fill-transparent transition-all duration-1000 ${
-                        batteryState.percentage < 20
-                          ? "stroke-red-500"
-                          : batteryState.percentage < 50
-                            ? "stroke-amber-500"
-                            : "stroke-emerald-500"
-                      }`}
+                      className={`fill-transparent transition-all duration-1000 ${batteryState.percentage < 20
+                        ? "stroke-red-500"
+                        : batteryState.percentage < 50
+                          ? "stroke-amber-500"
+                          : "stroke-emerald-500"
+                        }`}
                       strokeWidth="4"
                       strokeDasharray={2 * Math.PI * 28}
                       strokeDashoffset={2 * Math.PI * 28 * (1 - batteryState.percentage / 100)}
@@ -562,7 +618,7 @@ export default function SystemApps({
                   <p className="text-xs text-gray-400 dark:text-neutral-500 font-product-sans truncate mt-0.5 lowercase">
                     {batteryState.remainingTime ? `${batteryState.remainingTime}` : "calculating..."}
                   </p>
-                  <p className="text-[10px] text-gray-300 dark:text-neutral-600 font-mono mt-1 uppercase">
+                  <p className="text-[10px] text-gray-300 dark:text-neutral-600 font-mono mt-1 ">
                     {batteryState.powerRate ? `${batteryState.powerRate}w draw / ${batteryState.capacity}wh` : ""}
                   </p>
                 </div>
@@ -570,7 +626,7 @@ export default function SystemApps({
 
               {/* Power Profile Selector */}
               <div className="flex flex-col justify-center">
-                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600 uppercase tracking-widest mb-2 px-1">
+                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st mb-2 px-1">
                   power profile
                 </p>
                 <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100/50 dark:bg-neutral-900/60 rounded-xl border border-gray-200/50 dark:border-neutral-800/50">
@@ -586,18 +642,17 @@ export default function SystemApps({
                         key={prof.id}
                         disabled={!!executing}
                         onClick={() => handleSetPowerProfile(prof.id)}
-                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-300 cursor-pointer ${
-                          isActive
-                            ? "bg-white dark:bg-neutral-800 text-accent border border-gray-200/80 dark:border-neutral-700/80 shadow-sm"
-                            : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        }`}
+                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-300 cursor-pointer ${isActive
+                          ? "bg-white dark:bg-neutral-800 text-accent border border-gray-200/80 dark:border-neutral-700/80"
+                          : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          }`}
                       >
                         {isBusy ? (
                           <div className="w-3.5 h-3.5 border border-t-transparent border-accent rounded-full animate-spin"></div>
                         ) : (
                           <i className={`hgi hgi-stroke ${prof.icon} text-sm mb-0.5`}></i>
                         )}
-                        <span className="text-[9px] font-product-sans font-bold lowercase tracking-wider">
+                        <span className="text-[9px] font-product-sans font-bold lowercase r">
                           {prof.label}
                         </span>
                       </button>
@@ -607,6 +662,78 @@ export default function SystemApps({
               </div>
             </div>
           )}
+
+          {/* Active Reminders HUD */}
+          <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/40 border border-gray-200/80 dark:border-neutral-800/80 rounded-3xl backdrop-blur-md">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <i className="hgi hgi-stroke hgi-alarm-clock text-gray-400 text-lg"></i>
+                <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
+                  active reminders
+                </h4>
+              </div>
+              {reminders.length > 0 && (
+                <button
+                  disabled={!!executing}
+                  onClick={handleClearAllReminders}
+                  className="cursor-pointer text-[10px] font-product-sans font-bold text-red-500 hover:text-red-400 transition-colors  border border-red-500/10 hover:border-red-500/30 px-3 py-1 rounded-full bg-red-500/5 hover:bg-red-500/10 flex items-center gap-1"
+                >
+                  <i className="hgi hgi-stroke hgi-delete-02 text-[10px]"></i>
+                  clear all
+                </button>
+              )}
+            </div>
+
+            {reminders.length === 0 ? (
+              <p className="text-xs text-gray-400 dark:text-neutral-500 font-product-sans px-1 lowercase">
+                no active reminders. set one with <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-[10px]">$reminder</code>
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {reminders.map((rem) => {
+                  const busy = executing === `clear-${rem.timer}`;
+                  return (
+                    <div
+                      key={rem.timer}
+                      className="flex items-center justify-between p-3 bg-white/50 dark:bg-neutral-950/20 border border-gray-150 dark:border-neutral-850 rounded-2xl"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-full bg-accent/5 border border-accent/15 flex items-center justify-center text-accent shrink-0">
+                          <i className="hgi hgi-stroke hgi-alarm-clock text-sm"></i>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate lowercase">
+                            {rem.message}
+                          </p>
+                          <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5 lowercase">
+                            {rem.minutes}-min reminder set at {new Date(rem.set_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 ml-2">
+                        <span className="text-xs font-bold font-mono text-accent bg-accent/5 border border-accent/10 px-2.5 py-1 rounded-full">
+                          {Math.ceil(rem.remaining / 60)}m left
+                        </span>
+                        <button
+                          disabled={!!executing}
+                          onClick={() => handleCancelReminder(rem.timer)}
+                          className="cursor-pointer p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+                          title="cancel reminder"
+                        >
+                          {busy ? (
+                            <div className="w-3.5 h-3.5 border-2 border-t-transparent border-red-500 rounded-full animate-spin"></div>
+                          ) : (
+                            <i className="hgi hgi-stroke hgi-cancel-01 text-sm"></i>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
 
           {/* Primary power buttons — big icon cards */}
           <div className="grid grid-cols-4 gap-3">
@@ -645,7 +772,7 @@ export default function SystemApps({
                     )}
                   </div>
                   <span
-                    className={`text-[11px] font-product-sans font-bold lowercase tracking-wide ${busy ? c.icon : "text-gray-600 dark:text-gray-400 group-hover:" + c.icon.split(" ")[0]}`}
+                    className={`text-[11px] font-product-sans font-bold lowercase  ${busy ? c.icon : "text-gray-600 dark:text-gray-400 group-hover:" + c.icon.split(" ")[0]}`}
                   >
                     {meta.label.toLowerCase()}
                   </span>
@@ -657,7 +784,7 @@ export default function SystemApps({
           {/* Secondary items — compact flat rows */}
           {sessionSecondary.length > 0 && (
             <div className="flex flex-col gap-0 border-t border-gray-100 dark:border-neutral-900 pt-2">
-              <p className="text-[10px] font-mono text-gray-300 dark:text-neutral-700 uppercase tracking-widest mb-2 px-1">
+              <p className="text-[10px] font-mono text-gray-300 dark:text-neutral-700  st mb-2 px-1">
                 more
               </p>
               {sessionSecondary.map((script) => {
@@ -702,7 +829,7 @@ export default function SystemApps({
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm lowercase">
                           {tail}
                         </h3>
-                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 uppercase">
+                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
                           {action}
                         </span>
                       </div>
@@ -718,29 +845,27 @@ export default function SystemApps({
                         >
                           <button
                             onClick={() => handleToggle(script.name)}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-500 focus:outline-none cursor-pointer ${
-                              toggles[script.name]
-                                ? "bg-accent"
-                                : "bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
-                            }`}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-500 focus:outline-none cursor-pointer ${toggles[script.name]
+                              ? "bg-accent"
+                              : "bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+                              }`}
                           >
                             <span
-                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white dark:bg-neutral-300 transition-all duration-500 shadow-sm ${
-                                toggles[script.name]
-                                  ? "translate-x-4.5 bg-white"
-                                  : "translate-x-0.5"
-                              }`}
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white dark:bg-neutral-300 transition-all duration-500 ${toggles[script.name]
+                                ? "translate-x-4.5 bg-white"
+                                : "translate-x-0.5"
+                                }`}
                             />
                           </button>
                         </div>
                       ) : (
                         <>
-                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
                             {Math.round((script.size / 1024) * 10) / 10 || "<1"}
                             k
                           </span>
                           <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 uppercase">
+                            <button className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 ">
                               <i className="hgi hgi-stroke hgi-play text-xs"></i>
                               run
                             </button>
@@ -772,7 +897,7 @@ export default function SystemApps({
                 <button
                   disabled={!!executing}
                   onClick={handleCycleWallpaper}
-                  className="cursor-pointer text-[10px] font-product-sans font-bold text-accent hover:text-accent/90 transition-colors uppercase border border-accent/10 hover:border-accent/30 px-3 py-1 rounded-full bg-accent/5 hover:bg-accent/10 flex items-center gap-1.5"
+                  className="cursor-pointer text-[10px] font-product-sans font-bold text-accent hover:text-accent/90 transition-colors  border border-accent/10 hover:border-accent/30 px-3 py-1 rounded-full bg-accent/5 hover:bg-accent/10 flex items-center gap-1.5"
                 >
                   {executing === "cycle-wallpaper" ? (
                     <div className="w-3 h-3 border border-accent border-t-transparent rounded-full animate-spin"></div>
@@ -789,7 +914,7 @@ export default function SystemApps({
                   <i className="hgi hgi-stroke hgi-magic-wand text-lg"></i>
                 </div>
                 <div>
-                  <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600 uppercase tracking-widest">
+                  <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st">
                     active desktop skin
                   </p>
                   <p className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans lowercase mt-0.5">
@@ -800,24 +925,23 @@ export default function SystemApps({
 
               {/* Available Theme Pills */}
               <div className="flex flex-col gap-1.5">
-                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600 uppercase tracking-widest px-1">
+                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st px-1">
                   available profiles
                 </p>
                 <div className="flex gap-2 flex-wrap max-h-36 overflow-y-auto pr-1">
                   {theme.available.map((t) => {
-                    const isActive = theme.current.toLowerCase() === t.toLowerCase() || 
-                                     theme.current.toLowerCase().replace(/\s+/g, '-') === t.toLowerCase();
+                    const isActive = theme.current.toLowerCase() === t.toLowerCase() ||
+                      theme.current.toLowerCase().replace(/\s+/g, '-') === t.toLowerCase();
                     const isBusy = executing === `theme-${t}`;
                     return (
                       <button
                         key={t}
                         disabled={!!executing}
                         onClick={() => handleSetTheme(t)}
-                        className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-product-sans font-bold border transition-all duration-300 flex items-center gap-1.5 ${
-                          isActive
-                            ? "bg-accent text-white border-accent shadow-sm"
-                            : "border-gray-200 dark:border-neutral-800/80 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-neutral-700 bg-white/40 dark:bg-neutral-950/10"
-                        }`}
+                        className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-product-sans font-bold border transition-all duration-300 flex items-center gap-1.5 ${isActive
+                          ? "bg-accent text-white border-accent"
+                          : "border-gray-200 dark:border-neutral-800/80 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-neutral-700 bg-white/40 dark:bg-neutral-950/10"
+                          }`}
                       >
                         {isBusy ? (
                           <div className={`w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin ${isActive ? "border-white" : "border-accent"}`}></div>
@@ -926,11 +1050,10 @@ export default function SystemApps({
                   >
                     {/* Icon */}
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300 ${
-                        busy
-                          ? "bg-accent/10"
-                          : "bg-gray-50 dark:bg-neutral-900/50 group-hover:bg-accent/5"
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300 ${busy
+                        ? "bg-accent/10"
+                        : "bg-gray-50 dark:bg-neutral-900/50 group-hover:bg-accent/5"
+                        }`}
                     >
                       {busy ? (
                         <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
@@ -947,7 +1070,7 @@ export default function SystemApps({
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm lowercase">
                           {tail}
                         </h3>
-                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 uppercase">
+                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
                           {action}
                         </span>
                       </div>
@@ -965,28 +1088,26 @@ export default function SystemApps({
                         >
                           <button
                             onClick={() => handleToggle(script.name)}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-500 focus:outline-none cursor-pointer ${
-                              toggles[script.name]
-                                ? "bg-accent"
-                                : "bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
-                            }`}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-500 focus:outline-none cursor-pointer ${toggles[script.name]
+                              ? "bg-accent"
+                              : "bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+                              }`}
                           >
                             <span
-                              className={`inline-block h-3.5 w-3.5 transform rounded-full transition-all duration-500 shadow-sm ${
-                                toggles[script.name]
-                                  ? "translate-x-4.5 bg-white"
-                                  : "translate-x-0.5 bg-white dark:bg-neutral-300"
-                              }`}
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full transition-all duration-500 ${toggles[script.name]
+                                ? "translate-x-4.5 bg-white"
+                                : "translate-x-0.5 bg-white dark:bg-neutral-300"
+                                }`}
                             />
                           </button>
                         </div>
                       ) : (
                         <>
-                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans uppercase opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
                             {Math.round((script.size / 1024) * 10) / 10 || "<1"}k
                           </span>
                           <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 uppercase">
+                            <button className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30 ">
                               <i className="hgi hgi-stroke hgi-play text-xs"></i>
                               run
                             </button>
