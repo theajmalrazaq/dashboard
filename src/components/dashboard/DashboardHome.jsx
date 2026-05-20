@@ -767,7 +767,7 @@ export default function DashboardHome() {
             <div className="relative w-full flex justify-center">
               <SegmentClockDisplay />
             </div>
-            <p className="text-xs sm:text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans mt-4 text-center st ">
+            <p className="text-xs sm:text-sm font-bold text-gray-600 dark:text-neutral-500 font-product-sans mt-4 text-center st ">
               {currentTime.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -780,7 +780,7 @@ export default function DashboardHome() {
 
           {systemData.reminders && systemData.reminders.length > 0 && (
             <div className="flex flex-col items-center gap-2 mt-2 animate-in fade-in duration-500">
-              <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans st ">
+              <p className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans st ">
                 upcoming reminders
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -791,7 +791,7 @@ export default function DashboardHome() {
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
                     <span className="text-gray-900 dark:text-gray-100 font-bold lowercase">{rem.message}</span>
-                    <span className="text-gray-400 dark:text-neutral-500 font-bold">in {Math.ceil(rem.remaining / 60)}m</span>
+                    <span className="text-gray-600 dark:text-neutral-500 font-bold">in {Math.ceil(rem.remaining / 60)}m</span>
                   </div>
                 ))}
               </div>
@@ -829,7 +829,7 @@ export default function DashboardHome() {
                 }
                 className={`cursor-pointer flex items-center justify-center gap-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 outline-none ring-0 ${activeTab === tab.id
                   ? "px-5 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                  : "w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  : "w-10 h-10 text-gray-700 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   }`}
               >
                 {tab.id === "terminal" ? (
@@ -860,7 +860,7 @@ export default function DashboardHome() {
             {activeTab && (
               <button
                 onClick={() => setActiveTab(null)}
-                className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full text-gray-400 hover:text-red-500 transition-colors ml-1 border-l border-gray-200 dark:border-neutral-800"
+                className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:text-red-500 transition-colors ml-1 border-l border-gray-200 dark:border-neutral-800"
               >
                 <i className="hgi hgi-stroke hgi-cancel-01 text-lg"></i>
               </button>
@@ -873,7 +873,7 @@ export default function DashboardHome() {
           <div className={activeTab === "blog" ? "block" : "hidden"}>
             <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+                <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
                   personal blog
                 </h3>
                 <a
@@ -908,7 +908,7 @@ export default function DashboardHome() {
                       key={post.id}
                       className="group flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-400 shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 shrink-0">
                         <i className="hgi-stroke hgi-note-01 text-lg"></i>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -919,18 +919,18 @@ export default function DashboardHome() {
                           <span
                             className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold ${post.is_published
                               ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                              : "bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
+                              : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
                               }`}
                           >
                             {post.is_published ? "live" : "draft"}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-500 font-product-sans truncate">
+                        <p className="text-xs text-gray-700 dark:text-neutral-500 font-product-sans truncate">
                           {post.slug}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans ">
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans ">
                           {new Date(post.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -939,13 +939,13 @@ export default function DashboardHome() {
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <a
                             href={`/dashboard/edit?id=${post.id}`}
-                            className="p-2 text-gray-400 hover:text-accent transition-colors"
+                            className="p-2 text-gray-600 hover:text-accent transition-colors"
                           >
                             <i className="hgi-stroke hgi-pencil-edit-01"></i>
                           </a>
                           <button
                             onClick={() => handleDelete(post.id, post.title)}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-2 text-gray-600 hover:text-red-500 transition-colors"
                           >
                             <i className="hgi-stroke hgi-delete-02"></i>
                           </button>
@@ -955,7 +955,7 @@ export default function DashboardHome() {
                   ))}
                   {posts.length === 0 && (
                     <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-                      <p className="text-sm text-gray-400 font-product-sans">
+                      <p className="text-sm text-gray-600 font-product-sans">
                         no posts found.
                       </p>
                     </div>

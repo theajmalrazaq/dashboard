@@ -100,7 +100,7 @@ const COLOR_MAP = {
   neutral: {
     bg: "bg-gray-50 dark:bg-neutral-900/60",
     border: "border-gray-200 dark:border-neutral-800",
-    icon: "text-gray-400 dark:text-neutral-500",
+    icon: "text-gray-600 dark:text-neutral-500",
     hover:
       "hover:bg-gray-100/60 hover:border-gray-300 dark:hover:bg-neutral-800/60 dark:hover:border-neutral-700",
     busy: "border-gray-400/60 bg-gray-100",
@@ -504,14 +504,14 @@ export default function SystemApps({
               }}
               className={`flex items-center gap-2 px-5 py-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 cursor-pointer ${activeTab === cat.id && !search
                 ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                : "text-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
             >
               <i className={`hgi hgi-stroke ${cat.icon} text-sm`}></i>
               {cat.name}
               {!search && categorizedScripts[cat.id]?.length > 0 && (
                 <span
-                  className={`text-[8px] font-mono ${activeTab === cat.id ? "text-accent" : "text-gray-400 dark:text-neutral-600"}`}
+                  className={`text-[8px] font-mono ${activeTab === cat.id ? "text-accent" : "text-gray-600 dark:text-neutral-600"}`}
                 >
                   {categorizedScripts[cat.id].length}
                 </span>
@@ -524,7 +524,7 @@ export default function SystemApps({
       {/* Header row */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans lowercase">
+          <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans lowercase">
             {search
               ? `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""}`
               : CATEGORIES.find((c) => c.id === activeTab)?.name}
@@ -548,18 +548,18 @@ export default function SystemApps({
           )}
           {/* Search input */}
           <div className="relative flex items-center">
-            <i className="hgi hgi-stroke hgi-search-01 absolute left-3.5 text-gray-400 text-xs pointer-events-none z-10"></i>
+            <i className="hgi hgi-stroke hgi-search-01 absolute left-3.5 text-gray-600 text-xs pointer-events-none z-10"></i>
             <input
               type="text"
               placeholder="search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border border-gray-200 dark:border-neutral-800 rounded-full pl-9 pr-8 h-9 text-[11px] font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-400/60 focus:outline-none focus:border-accent/30 transition-all w-40"
+              className="bg-transparent border border-gray-200 dark:border-neutral-800 rounded-full pl-9 pr-8 h-9 text-[11px] font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-600/60 focus:outline-none focus:border-accent/30 transition-all w-40"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 text-gray-600 hover:text-gray-600 transition-colors"
               >
                 <i className="hgi hgi-stroke hgi-cancel-01 text-xs"></i>
               </button>
@@ -606,7 +606,7 @@ export default function SystemApps({
                     <span className="text-sm font-bold font-product-sans text-gray-900 dark:text-gray-100">
                       {batteryState.percentage}%
                     </span>
-                    <i className={`hgi hgi-stroke ${batteryState.status === "charging" ? "hgi-flash text-emerald-400" : "hgi-battery-charging text-gray-400"} text-[10px] -mt-0.5`}></i>
+                    <i className={`hgi hgi-stroke ${batteryState.status === "charging" ? "hgi-flash text-emerald-400" : "hgi-battery-charging text-gray-600"} text-[10px] -mt-0.5`}></i>
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -615,10 +615,10 @@ export default function SystemApps({
                       {batteryState.status === "charging" ? "charging" : "discharging"}
                     </h4>
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-neutral-500 font-product-sans truncate mt-0.5 lowercase">
+                  <p className="text-xs text-gray-600 dark:text-neutral-500 font-product-sans truncate mt-0.5 lowercase">
                     {batteryState.remainingTime ? `${batteryState.remainingTime}` : "calculating..."}
                   </p>
-                  <p className="text-[10px] text-gray-300 dark:text-neutral-600 font-mono mt-1 ">
+                  <p className="text-[10px] text-gray-500 dark:text-neutral-600 font-mono mt-1 ">
                     {batteryState.powerRate ? `${batteryState.powerRate}w draw / ${batteryState.capacity}wh` : ""}
                   </p>
                 </div>
@@ -626,7 +626,7 @@ export default function SystemApps({
 
               {/* Power Profile Selector */}
               <div className="flex flex-col justify-center">
-                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st mb-2 px-1">
+                <p className="text-[10px] font-mono text-gray-600 dark:text-neutral-600  st mb-2 px-1">
                   power profile
                 </p>
                 <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100/50 dark:bg-neutral-900/60 rounded-xl border border-gray-200/50 dark:border-neutral-800/50">
@@ -644,7 +644,7 @@ export default function SystemApps({
                         onClick={() => handleSetPowerProfile(prof.id)}
                         className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-300 cursor-pointer ${isActive
                           ? "bg-white dark:bg-neutral-800 text-accent border border-gray-200/80 dark:border-neutral-700/80"
-                          : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          : "text-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
                           }`}
                       >
                         {isBusy ? (
@@ -667,7 +667,7 @@ export default function SystemApps({
           <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/40 border border-gray-200/80 dark:border-neutral-800/80 rounded-3xl backdrop-blur-md">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <i className="hgi hgi-stroke hgi-alarm-clock text-gray-400 text-lg"></i>
+                <i className="hgi hgi-stroke hgi-alarm-clock text-gray-600 text-lg"></i>
                 <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
                   active reminders
                 </h4>
@@ -685,7 +685,7 @@ export default function SystemApps({
             </div>
 
             {reminders.length === 0 ? (
-              <p className="text-xs text-gray-400 dark:text-neutral-500 font-product-sans px-1 lowercase">
+              <p className="text-xs text-gray-600 dark:text-neutral-500 font-product-sans px-1 lowercase">
                 no active reminders. set one with <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded text-[10px]">$reminder</code>
               </p>
             ) : (
@@ -705,7 +705,7 @@ export default function SystemApps({
                           <p className="text-xs font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate lowercase">
                             {rem.message}
                           </p>
-                          <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5 lowercase">
+                          <p className="text-[10px] text-gray-600 dark:text-neutral-500 font-product-sans mt-0.5 lowercase">
                             {rem.minutes}-min reminder set at {new Date(rem.set_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -717,7 +717,7 @@ export default function SystemApps({
                         <button
                           disabled={!!executing}
                           onClick={() => handleCancelReminder(rem.timer)}
-                          className="cursor-pointer p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+                          className="cursor-pointer p-1.5 text-gray-600 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
                           title="cancel reminder"
                         >
                           {busy ? (
@@ -784,7 +784,7 @@ export default function SystemApps({
           {/* Secondary items — compact flat rows */}
           {sessionSecondary.length > 0 && (
             <div className="flex flex-col gap-0 border-t border-gray-100 dark:border-neutral-900 pt-2">
-              <p className="text-[10px] font-mono text-gray-300 dark:text-neutral-700  st mb-2 px-1">
+              <p className="text-[10px] font-mono text-gray-500 dark:text-neutral-700  st mb-2 px-1">
                 more
               </p>
               {sessionSecondary.map((script) => {
@@ -820,7 +820,7 @@ export default function SystemApps({
                         <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <i
-                          className={`hgi hgi-stroke ${getScriptIcon(script.name)} text-gray-400 dark:text-neutral-600 group-hover:text-accent text-lg transition-colors`}
+                          className={`hgi hgi-stroke ${getScriptIcon(script.name)} text-gray-600 dark:text-neutral-600 group-hover:text-accent text-lg transition-colors`}
                         ></i>
                       )}
                     </div>
@@ -829,11 +829,11 @@ export default function SystemApps({
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm lowercase">
                           {tail}
                         </h3>
-                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
+                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-600 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
                           {action}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 dark:text-neutral-600 font-product-sans truncate font-mono mt-0.5">
+                      <p className="text-xs text-gray-600 dark:text-neutral-600 font-product-sans truncate font-mono mt-0.5">
                         {script.name}
                       </p>
                     </div>
@@ -860,7 +860,7 @@ export default function SystemApps({
                         </div>
                       ) : (
                         <>
-                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                          <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
                             {Math.round((script.size / 1024) * 10) / 10 || "<1"}
                             k
                           </span>
@@ -889,7 +889,7 @@ export default function SystemApps({
             <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/40 border border-gray-200/80 dark:border-neutral-800/80 rounded-3xl backdrop-blur-md animate-in fade-in duration-300">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <i className="hgi hgi-stroke hgi-paint-board text-gray-400 text-lg"></i>
+                  <i className="hgi hgi-stroke hgi-paint-board text-gray-600 text-lg"></i>
                   <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
                     system themes
                   </h4>
@@ -914,7 +914,7 @@ export default function SystemApps({
                   <i className="hgi hgi-stroke hgi-magic-wand text-lg"></i>
                 </div>
                 <div>
-                  <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st">
+                  <p className="text-[10px] font-mono text-gray-600 dark:text-neutral-600  st">
                     active desktop skin
                   </p>
                   <p className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans lowercase mt-0.5">
@@ -925,7 +925,7 @@ export default function SystemApps({
 
               {/* Available Theme Pills */}
               <div className="flex flex-col gap-1.5">
-                <p className="text-[10px] font-mono text-gray-400 dark:text-neutral-600  st px-1">
+                <p className="text-[10px] font-mono text-gray-600 dark:text-neutral-600  st px-1">
                   available profiles
                 </p>
                 <div className="flex gap-2 flex-wrap max-h-36 overflow-y-auto pr-1">
@@ -946,7 +946,7 @@ export default function SystemApps({
                         {isBusy ? (
                           <div className={`w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin ${isActive ? "border-white" : "border-accent"}`}></div>
                         ) : (
-                          <i className={`hgi hgi-stroke hgi-t-shirt-01 text-[11px] ${isActive ? "text-white" : "text-gray-400 dark:text-neutral-500"}`}></i>
+                          <i className={`hgi hgi-stroke hgi-t-shirt-01 text-[11px] ${isActive ? "text-white" : "text-gray-600 dark:text-neutral-500"}`}></i>
                         )}
                         <span>{t}</span>
                       </button>
@@ -961,7 +961,7 @@ export default function SystemApps({
           {activeTab === "display" && !search && (
             <div className="flex flex-col gap-4 p-5 bg-gray-50/50 dark:bg-neutral-900/40 border border-gray-200/80 dark:border-neutral-800/80 rounded-3xl backdrop-blur-md animate-in fade-in duration-300">
               <div className="flex items-center gap-2">
-                <i className="hgi hgi-stroke hgi-camera text-gray-400 text-lg"></i>
+                <i className="hgi hgi-stroke hgi-camera text-gray-600 text-lg"></i>
                 <h4 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans text-sm lowercase">
                   screen capture & tools
                 </h4>
@@ -1003,13 +1003,13 @@ export default function SystemApps({
                         {isBusy ? (
                           <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
                         ) : (
-                          <i className={`hgi hgi-stroke ${tool.icon} text-lg text-gray-400 dark:text-neutral-500 group-hover:text-accent`}></i>
+                          <i className={`hgi hgi-stroke ${tool.icon} text-lg text-gray-600 dark:text-neutral-500 group-hover:text-accent`}></i>
                         )}
                       </div>
                       <span className="text-[11px] font-product-sans font-bold text-gray-900 dark:text-gray-100 lowercase">
                         {tool.label}
                       </span>
-                      <span className="text-[8px] font-product-sans text-gray-400 mt-0.5 text-center leading-none">
+                      <span className="text-[8px] font-product-sans text-gray-600 mt-0.5 text-center leading-none">
                         {tool.desc}
                       </span>
                     </button>
@@ -1059,7 +1059,7 @@ export default function SystemApps({
                         <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <i
-                          className={`hgi hgi-stroke ${getScriptIcon(script.name)} text-gray-400 dark:text-neutral-600 group-hover:text-accent text-lg transition-colors`}
+                          className={`hgi hgi-stroke ${getScriptIcon(script.name)} text-gray-600 dark:text-neutral-600 group-hover:text-accent text-lg transition-colors`}
                         ></i>
                       )}
                     </div>
@@ -1070,11 +1070,11 @@ export default function SystemApps({
                         <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm lowercase">
                           {tail}
                         </h3>
-                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-400 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
+                        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold bg-gray-100 dark:bg-neutral-900 text-gray-600 dark:text-neutral-600 border border-gray-200/50 dark:border-neutral-800/50 ">
                           {action}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 dark:text-neutral-600 font-product-sans truncate font-mono mt-0.5">
+                      <p className="text-xs text-gray-600 dark:text-neutral-600 font-product-sans truncate font-mono mt-0.5">
                         {script.name}
                       </p>
                     </div>
@@ -1103,7 +1103,7 @@ export default function SystemApps({
                         </div>
                       ) : (
                         <>
-                          <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                          <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans  opacity-100 group-hover:opacity-0 transition-opacity duration-300">
                             {Math.round((script.size / 1024) * 10) / 10 || "<1"}k
                           </span>
                           <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1120,7 +1120,7 @@ export default function SystemApps({
               })
             ) : (
               <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-                <p className="text-sm text-gray-400 font-product-sans">
+                <p className="text-sm text-gray-600 font-product-sans">
                   {search
                     ? `no commands match "${search}"`
                     : "no scripts in this category"}

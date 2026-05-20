@@ -578,7 +578,7 @@ export default function AiChatbot({
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-product-sans">
                 Review {notificationAction.type === "note" ? "Note" : "Tasks"}
               </h3>
-              <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans  tracking-[0.2em] mt-1">
+              <p className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans  tracking-[0.2em] mt-1">
                 Preview your{" "}
                 {notificationAction.type === "note" ? "thought" : "items"}{" "}
                 before saving
@@ -641,7 +641,7 @@ export default function AiChatbot({
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setNotificationAction(null)}
-                className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all  st cursor-pointer"
+                className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all  st cursor-pointer"
               >
                 discard
               </button>
@@ -661,7 +661,7 @@ export default function AiChatbot({
         /* History List View */
         <div className="flex flex-col gap-6 w-full animate-in slide-in-from-right-4 duration-500">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+            <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
               chat history
             </h3>
             <button
@@ -680,14 +680,14 @@ export default function AiChatbot({
                 onClick={() => loadSession(s.id)}
                 className="group flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.01]"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-400 shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 shrink-0">
                   <i className="hgi-stroke hgi-ai-chat-01 text-lg"></i>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm">
                     {s.title}
                   </h3>
-                  <p className="text-[10px] text-gray-400 font-bold font-product-sans ">
+                  <p className="text-[10px] text-gray-600 font-bold font-product-sans ">
                     {new Date(s.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -698,7 +698,7 @@ export default function AiChatbot({
                 </div>
                 <button
                   onClick={(e) => deleteSession(s.id, e)}
-                  className="p-2 text-gray-400 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                  className="p-2 text-gray-600 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
                 >
                   <i className="hgi-stroke hgi-delete-02"></i>
                 </button>
@@ -706,7 +706,7 @@ export default function AiChatbot({
             ))}
             {sessions.length === 0 && (
               <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-                <p className="text-sm text-gray-400 font-product-sans">
+                <p className="text-sm text-gray-600 font-product-sans">
                   no past chats found.
                 </p>
               </div>

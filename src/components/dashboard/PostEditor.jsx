@@ -182,7 +182,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
           <div className="flex items-center gap-3 mt-2">
             <a
               href="/dashboard"
-              className="cursor-pointer inline-flex items-center gap-2 pr-4 pl-2 py-2 bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 font-product-sans font-medium text-sm"
+              className="cursor-pointer inline-flex items-center gap-2 pr-4 pl-2 py-2 bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 font-product-sans font-medium text-sm"
             >
               <i className="hgi-stroke hgi-arrow-left-01 text-base"></i>
               back
@@ -217,7 +217,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
               className={`cursor-pointer inline-flex items-center gap-2 pl-4 pr-2 py-2 border rounded-full transition-all duration-300 font-product-sans font-medium text-sm ${
                 isPublished
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
-                  : "bg-gray-100 dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-500 dark:text-gray-400"
+                  : "bg-gray-100 dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 text-gray-700 dark:text-gray-400"
               }`}
             >
               {isPublished ? "published" : "draft"}
@@ -252,7 +252,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   className={`cursor-pointer px-4 py-1.5 rounded-full transition-all duration-300 capitalize ${
                     activeTab === tab
                       ? "bg-white dark:bg-black text-gray-900 dark:text-gray-100"
-                      : "text-gray-500 dark:text-gray-400"
+                      : "text-gray-700 dark:text-gray-400"
                   }`}
                 >
                   {tab}
@@ -279,24 +279,24 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
           <div className="flex flex-col gap-6">
             {/* Inline slug + read time */}
             <div className="flex flex-wrap items-center gap-3 -mt-4">
-              <div className="flex items-center gap-2 text-xs text-gray-400 font-product-sans">
+              <div className="flex items-center gap-2 text-xs text-gray-600 font-product-sans">
                 <i className="hgi-stroke hgi-link-01 text-xs"></i>
                 <input
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="url-slug"
-                  className="bg-transparent outline-none font-mono text-accent placeholder:text-gray-300 dark:placeholder:text-neutral-700 w-36"
+                  className="bg-transparent outline-none font-mono text-accent placeholder:text-gray-500 dark:placeholder:text-neutral-700 w-36"
                 />
               </div>
               <span className="text-gray-200 dark:text-neutral-800">·</span>
-              <div className="flex items-center gap-1 text-xs text-gray-400 font-product-sans">
+              <div className="flex items-center gap-1 text-xs text-gray-600 font-product-sans">
                 <i className="hgi-stroke hgi-clock-01 text-xs"></i>
                 <input
                   type="number"
                   value={readTime}
                   onChange={(e) => setReadTime(e.target.value)}
-                  className="bg-transparent outline-none w-8 font-mono text-gray-500 dark:text-gray-400"
+                  className="bg-transparent outline-none w-8 font-mono text-gray-700 dark:text-gray-400"
                 />
                 <span>min read</span>
               </div>
@@ -325,7 +325,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
               },
             ].map(({ label, value, onChange, placeholder, rows }) => (
               <div key={label} className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 font-product-sans">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
                   {label}
                 </label>
                 <textarea
@@ -333,7 +333,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   onChange={(e) => onChange(e.target.value)}
                   placeholder={placeholder}
                   rows={rows}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-300 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300 resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-500 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300 resize-none"
                 />
               </div>
             ))}
@@ -353,7 +353,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
               },
             ].map(({ label, value, onChange, placeholder }) => (
               <div key={label} className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 font-product-sans">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
                   {label}
                 </label>
                 <input
@@ -361,7 +361,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
                   placeholder={placeholder}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-300 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-500 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300"
                 />
               </div>
             ))}
@@ -383,7 +383,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
           <div className="border-t border-gray-100 dark:border-neutral-900 pt-8">
             <div className="flex items-center gap-2 mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-bold text-gray-400 font-product-sans">
+              <span className="text-xs font-bold text-gray-600 font-product-sans">
                 Live Preview
               </span>
             </div>
@@ -391,7 +391,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
               {title || "Untitled"}
             </h2>
             <div
-              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-p:font-product-sans prose-p:text-gray-500 dark:prose-p:text-gray-400 prose-headings:font-product-sans"
+              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-p:font-product-sans prose-p:text-gray-700 dark:prose-p:text-gray-400 prose-headings:font-product-sans"
               dangerouslySetInnerHTML={{
                 __html: marked.parse(content || "_Nothing to preview yet..._"),
               }}
@@ -414,17 +414,17 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   <i className="hgi-stroke hgi-magic-wand-01 text-lg"></i>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans">
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-500 font-product-sans">
                     ai writer
                   </h3>
-                  <p className="text-[10px] text-gray-300 dark:text-neutral-700 font-product-sans">
+                  <p className="text-[10px] text-gray-500 dark:text-neutral-700 font-product-sans">
                     powered by puter.js · no api keys needed
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 font-product-sans">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
                   Your idea or topic
                 </label>
                 <textarea
@@ -433,7 +433,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   placeholder="e.g. A guide on building accessible React components with ARIA patterns..."
                   rows={4}
                   disabled={aiGenerating}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-300 dark:placeholder:text-neutral-700 outline-none focus:border-violet-500 transition-colors duration-300 resize-none disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-500 dark:placeholder:text-neutral-700 outline-none focus:border-violet-500 transition-colors duration-300 resize-none disabled:opacity-50"
                 />
               </div>
 
@@ -451,7 +451,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no extra text). Use this 
                   type="button"
                   onClick={() => setShowAiModal(false)}
                   disabled={aiGenerating}
-                  className="cursor-pointer px-4 py-2 rounded-full text-sm font-product-sans font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 disabled:opacity-50"
+                  className="cursor-pointer px-4 py-2 rounded-full text-sm font-product-sans font-medium text-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 disabled:opacity-50"
                 >
                   cancel
                 </button>

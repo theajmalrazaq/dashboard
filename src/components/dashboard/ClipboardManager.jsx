@@ -54,7 +54,7 @@ export default function ClipboardManager({ clipboardData }) {
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* Header matches Blog/Notes */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+        <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
           clipboard history
         </h3>
       </div>
@@ -65,7 +65,7 @@ export default function ClipboardManager({ clipboardData }) {
           <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent">
             <i className="hgi-stroke hgi-copy-01 text-sm"></i>
           </div>
-          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500  st font-product-sans">
+          <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-500  st font-product-sans">
             active content
           </span>
         </div>
@@ -76,7 +76,7 @@ export default function ClipboardManager({ clipboardData }) {
 
       {/* Search Bar matches standard input style */}
       <div className="relative group mb-2">
-        <i className="hgi-stroke hgi-search-02 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-600 group-focus-within:text-accent transition-colors"></i>
+        <i className="hgi-stroke hgi-search-02 absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 dark:text-neutral-600 group-focus-within:text-accent transition-colors"></i>
         <input
           type="text"
           placeholder="Search history..."
@@ -108,7 +108,7 @@ export default function ClipboardManager({ clipboardData }) {
               key={item.id}
               className="group flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300"
             >
-              <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-400 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 shrink-0">
                 <i
                   className={`hgi-stroke ${item.type === "file" ? "hgi-image-01" : "hgi-note-01"} text-lg`}
                 ></i>
@@ -124,7 +124,7 @@ export default function ClipboardManager({ clipboardData }) {
                       onError={(e) => {
                         e.target.style.display = "none";
                         e.target.parentElement.innerHTML =
-                          '<div class="flex items-center justify-center h-full text-[10px] text-gray-400">Image missing</div>';
+                          '<div class="flex items-center justify-center h-full text-[10px] text-gray-600">Image missing</div>';
                       }}
                     />
                   </div>
@@ -135,14 +135,14 @@ export default function ClipboardManager({ clipboardData }) {
                       ? `Image File: ${item.preview.split("/").pop()}`
                       : item.preview}
                   </p>
-                  <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5  st font-bold">
+                  <p className="text-[10px] text-gray-600 dark:text-neutral-500 font-product-sans mt-0.5  st font-bold">
                     {item.type}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  shrink-0">
+                <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans  shrink-0">
                   {item.subtext.split(" ").slice(1, 3).join(" ")}
                 </span>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -150,7 +150,7 @@ export default function ClipboardManager({ clipboardData }) {
                     onClick={() => handleCopy(item)}
                     className={`cursor-pointer p-2 rounded-full transition-all duration-300 ${copying === item.id
                       ? "text-green-500 bg-green-500/10"
-                      : "text-gray-400 hover:text-accent hover:bg-accent/10"
+                      : "text-gray-600 hover:text-accent hover:bg-accent/10"
                       }`}
                     title="Restore to clipboard"
                   >
@@ -164,7 +164,7 @@ export default function ClipboardManager({ clipboardData }) {
           ))}
           {filteredHistory.length === 0 && (
             <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] mt-4">
-              <p className="text-sm text-gray-400 font-product-sans">
+              <p className="text-sm text-gray-600 font-product-sans">
                 no history items found.
               </p>
             </div>

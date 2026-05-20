@@ -47,14 +47,14 @@ export default function DashboardModal({
                 </h3>
               )}
               {subtitle && (
-                <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans mt-0.5 lowercase">
+                <p className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans mt-0.5 lowercase">
                   {subtitle}
                 </p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-400 transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 transition-colors cursor-pointer"
             >
               <i className="hgi-stroke hgi-cancel-01 text-sm"></i>
             </button>

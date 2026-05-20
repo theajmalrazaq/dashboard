@@ -497,7 +497,7 @@ export default function ChatInput({
                 setNewCommand({ ...newCommand, name: e.target.value })
               }
               placeholder="e.g., notion"
-              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
+              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
             />
           </div>
 
@@ -512,7 +512,7 @@ export default function ChatInput({
                 setNewCommand({ ...newCommand, url: e.target.value })
               }
               placeholder="https://example.com"
-              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
+              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
             />
           </div>
 
@@ -553,7 +553,7 @@ export default function ChatInput({
                   <button
                     type="button"
                     onClick={() => handleRemoveCommand(cmd.name)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    className="p-1 text-gray-600 hover:text-red-500 transition-colors cursor-pointer"
                     title="Remove"
                   >
                     <i className="hgi-stroke hgi-close-square text-xs"></i>
@@ -574,7 +574,7 @@ export default function ChatInput({
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className={`cursor-pointer w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${showMenu ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
+              className={`cursor-pointer w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${showMenu ? "bg-accent text-white" : "text-gray-700 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
               title="AI Settings"
             >
               <i
@@ -588,7 +588,7 @@ export default function ChatInput({
                 onClick={() => {
                   onViewChange(view === "chat" ? "history" : "chat");
                 }}
-                className={`cursor-pointer w-8 h-8 flex items-center justify-center rounded-full transition-all ${view === "history" ? "bg-accent text-white" : "text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
+                className={`cursor-pointer w-8 h-8 flex items-center justify-center rounded-full transition-all ${view === "history" ? "bg-accent text-white" : "text-gray-700 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"}`}
                 title="Chat History"
               >
                 <i className="hgi-stroke hgi-clock-01 text-lg"></i>
@@ -631,7 +631,7 @@ export default function ChatInput({
                         ? "Search the universe..."
                         : "Ask Octo or type / for links, @ for tabs, $ for reminders..."
                 }
-                className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
+                className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-700 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
               />
               <button
                 type="submit"
@@ -649,7 +649,7 @@ export default function ChatInput({
             <button
               type="button"
               onClick={onNewChat}
-              className="cursor-pointer w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300 rounded-full"
+              className="cursor-pointer w-9 h-9 flex items-center justify-center text-gray-700 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300 rounded-full"
               title="New Chat"
             >
               <i className="hgi hgi-stroke hgi-plus-sign-square text-lg"></i>
@@ -739,7 +739,7 @@ export default function ChatInput({
           {isReminderActive && reminderSetupStep === "duration" && (
             <div className="mt-2 flex flex-col gap-3 p-4 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[24px] animate-in slide-in-from-top-4 duration-300 transition-all">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-500  st px-1">
+                <span className="text-[10px] font-product-sans font-bold text-gray-600 dark:text-neutral-500  st px-1">
                   select duration
                 </span>
                 {status.message && (
@@ -776,7 +776,7 @@ export default function ChatInput({
                           ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
                           : isCustomActive
                             ? "bg-accent/15 border-accent/25 text-accent"
-                            : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                            : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
                           }`}
                       >
                         {isCustomActive ? (
@@ -825,7 +825,7 @@ export default function ChatInput({
                         ? "bg-accent/15 text-accent border-accent/25"
                         : isFocused
                           ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
-                          : "border-gray-200 dark:border-neutral-800 text-gray-400 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                          : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
                         }`}
                     >
                       {t}m
@@ -840,7 +840,7 @@ export default function ChatInput({
             <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
-                  <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
+                  <h4 className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                     <i className="hgi-stroke hgi-brain text-xs"></i>
                     engine
                   </h4>
@@ -854,11 +854,11 @@ export default function ChatInput({
                         }}
                         className={`cursor-pointer flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-bold font-product-sans transition-all duration-300 border ${model === m.id
                           ? "bg-accent/[0.05] border-accent/20 text-accent"
-                          : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500 hover:border-gray-200 dark:hover:border-neutral-800"
+                          : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-700 hover:border-gray-200 dark:hover:border-neutral-800"
                           }`}
                       >
                         <i
-                          className={`hgi-stroke ${m.icon} ${model === m.id ? "text-accent" : "text-gray-400"}`}
+                          className={`hgi-stroke ${m.icon} ${model === m.id ? "text-accent" : "text-gray-600"}`}
                         ></i>
                         {m.name}
                       </button>
@@ -868,7 +868,7 @@ export default function ChatInput({
 
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col gap-3">
-                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
+                    <h4 className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                       <i className="hgi-stroke hgi-globe text-xs"></i>
                       capabilities
                     </h4>
@@ -876,7 +876,7 @@ export default function ChatInput({
                       onClick={() => setWebSearch(!webSearch)}
                       className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${webSearch
                         ? "bg-emerald-500/[0.05] border-emerald-500/20 text-emerald-500"
-                        : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-500"
+                        : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-700"
                         }`}
                     >
                       <span className="text-[11px] font-bold font-product-sans">
@@ -893,12 +893,12 @@ export default function ChatInput({
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
+                    <h4 className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
                       <i className="hgi-stroke hgi-analytics-up text-xs"></i>
                       resources
                     </h4>
                     <div className="flex items-center justify-between text-[10px] font-bold font-product-sans">
-                      <span className="text-gray-400">Available</span>
+                      <span className="text-gray-600">Available</span>
                       {stats.loading ? (
                         <div className="h-4 w-20 skeleton"></div>
                       ) : (

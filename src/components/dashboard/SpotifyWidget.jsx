@@ -78,7 +78,7 @@ export default function SpotifyWidget({ spotifyState }) {
               />
             ) : (
               <i
-                className={`hgi-stroke hgi-spotify text-2xl ${isPlaying ? "text-emerald-500 animate-spin-slow" : "text-gray-400/30"}`}
+                className={`hgi-stroke hgi-spotify text-2xl ${isPlaying ? "text-emerald-500 animate-spin-slow" : "text-gray-600/30"}`}
               ></i>
             )}
           </div>
@@ -91,7 +91,7 @@ export default function SpotifyWidget({ spotifyState }) {
             <h4 className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate font-product-sans">
               {track?.title || "Spotify Player"}
             </h4>
-            <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate font-product-sans  mb-1">
+            <p className="text-[10px] text-gray-600 dark:text-neutral-500 truncate font-product-sans  mb-1">
               {track?.artist || "Standby Mode"}
             </p>
 
@@ -108,7 +108,7 @@ export default function SpotifyWidget({ spotifyState }) {
           <div className="flex items-center gap-2 border-l border-gray-100 dark:border-neutral-800/50 pl-6">
             <button
               onClick={() => sendCommand("prev")}
-              className="p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all transform hover:scale-110 cursor-pointer"
+              className="p-1.5 text-gray-600 hover:text-gray-900 dark:hover:text-white transition-all transform hover:scale-110 cursor-pointer"
               title="Previous"
             >
               <i className="hgi-stroke hgi-arrow-left-01 text-base"></i>
@@ -124,7 +124,7 @@ export default function SpotifyWidget({ spotifyState }) {
             </button>
             <button
               onClick={() => sendCommand("next")}
-              className="p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all transform hover:scale-110 cursor-pointer"
+              className="p-1.5 text-gray-600 hover:text-gray-900 dark:hover:text-white transition-all transform hover:scale-110 cursor-pointer"
               title="Next"
             >
               <i className="hgi-stroke hgi-arrow-right-01 text-base"></i>

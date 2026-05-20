@@ -130,7 +130,7 @@ export default function GithubFeed() {
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+        <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
           github network
         </h3>
         <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export default function GithubFeed() {
             key={entry.id || Math.random()}
             className="group flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300"
           >
-            <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-400 shrink-0 border border-gray-100 dark:border-neutral-800 group-hover:border-accent transition-colors">
+            <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 shrink-0 border border-gray-100 dark:border-neutral-800 group-hover:border-accent transition-colors">
               {entry.thumbnail ? (
                 <img
                   src={entry.thumbnail}
@@ -214,7 +214,7 @@ export default function GithubFeed() {
             </div>
 
             <div className="flex items-center shrink-0">
-              <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans ">
+              <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans ">
                 {timeAgo(entry.published)}
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function GithubFeed() {
 
         {entries.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-            <p className="text-sm text-gray-400 font-product-sans">
+            <p className="text-sm text-gray-600 font-product-sans">
               feed unavailable or empty
             </p>
           </div>

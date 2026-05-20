@@ -46,7 +46,7 @@ export default function LoginForm() {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="email"
-              className="text-xs font-bold text-gray-500 dark:text-gray-400 font-product-sans ml-1"
+              className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans ml-1"
             >
               Email
             </label>
@@ -57,14 +57,14 @@ export default function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="mail@example.com"
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-600 outline-none focus:border-accent transition-colors duration-300"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-600 outline-none focus:border-accent transition-colors duration-300"
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <label
               htmlFor="password"
-              className="text-xs font-bold text-gray-500 dark:text-gray-400 font-product-sans ml-1"
+              className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans ml-1"
             >
               Password
             </label>
@@ -75,7 +75,7 @@ export default function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-600 outline-none focus:border-accent transition-colors duration-300"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-600 outline-none focus:border-accent transition-colors duration-300"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function LoginForm() {
 
             <a
               href="/"
-              className="cursor-pointer text-xs font-product-sans text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+              className="cursor-pointer text-xs font-product-sans text-gray-600 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
             >
               ← back to portfolio
             </a>

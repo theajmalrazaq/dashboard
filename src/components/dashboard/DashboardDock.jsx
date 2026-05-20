@@ -105,7 +105,7 @@ export default function DashboardDock() {
         subtitle="insert a url to pin it to your dock"
       >
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-700 ml-1">
+          <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-700 ml-1">
             paste url
           </span>
           <input
@@ -115,14 +115,14 @@ export default function DashboardDock() {
             onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
             onKeyDown={(e) => e.key === "Enter" && addLink()}
             autoFocus
-            className="w-full bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-900 rounded-2xl px-5 py-4 text-sm font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-700 focus:outline-none focus:border-accent/30 transition-all"
+            className="w-full bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-900 rounded-2xl px-5 py-4 text-sm font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 focus:outline-none focus:border-accent/30 transition-all"
           />
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-2">
           <button
             onClick={() => setIsAdding(false)}
-            className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer"
+            className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer"
           >
             cancel
           </button>
@@ -144,7 +144,7 @@ export default function DashboardDock() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-11 h-11 flex items-center justify-center rounded-full bg-transparent text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300 overflow-hidden"
+              className="w-11 h-11 flex items-center justify-center rounded-full bg-transparent text-gray-700 dark:text-gray-400 hover:bg-white dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300 overflow-hidden"
             >
               {link.favicon ? (
                 <img
@@ -174,7 +174,7 @@ export default function DashboardDock() {
           onClick={() => setIsAdding(!isAdding)}
           className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer ${isAdding
             ? "bg-accent text-white"
-            : "text-gray-400 hover:text-accent hover:bg-white dark:hover:bg-neutral-800"
+            : "text-gray-600 hover:text-accent hover:bg-white dark:hover:bg-neutral-800"
             }`}
         >
           <i className="hgi hgi-stroke hgi-plus-sign-square text-lg"></i>

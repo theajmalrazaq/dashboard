@@ -174,7 +174,7 @@ export default function Terminal({ isActive }) {
             <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
             <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
           </div>
-          <span className="text-[11px] font-product-sans font-bold text-gray-400 dark:text-neutral-500 ml-4 flex items-center gap-2">
+          <span className="text-[11px] font-product-sans font-bold text-gray-600 dark:text-neutral-500 ml-4 flex items-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -211,7 +211,7 @@ export default function Terminal({ isActive }) {
         {history.map((line, i) => (
           <div key={i} className="break-words leading-relaxed">
             {line.type === "command" ? (
-              <div className="flex items-start gap-2.5 text-gray-400">
+              <div className="flex items-start gap-2.5 text-gray-600">
                 <span className="text-accent shrink-0 font-bold">❯</span>
                 <span className="text-[11px] opacity-40 font-bold hidden sm:inline">
                   {line.path}
@@ -227,7 +227,7 @@ export default function Terminal({ isActive }) {
                 {line.content}
               </div>
             ) : (
-              <div className="text-gray-300 whitespace-pre-wrap pl-6">
+              <div className="text-gray-500 whitespace-pre-wrap pl-6">
                 {line.content}
               </div>
             )}
@@ -237,7 +237,7 @@ export default function Terminal({ isActive }) {
         {/* Active Input Line */}
         <div className="flex items-center gap-2.5 pt-2">
           <span className="text-accent shrink-0 font-bold">❯</span>
-          <span className="text-[11px] text-gray-500 font-bold hidden sm:inline">
+          <span className="text-[11px] text-gray-700 font-bold hidden sm:inline">
             {cwd.replace(DEFAULT_HOME, "~")}
           </span>
           <input

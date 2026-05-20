@@ -355,7 +355,7 @@ export default function AiVoiceAssistant({ isActive }) {
             disabled={loading}
             className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 cursor-pointer ${isListening
               ? "bg-accent text-white scale-110"
-              : "bg-white dark:bg-neutral-900 text-gray-400 dark:text-neutral-500 hover:text-accent hover:border-accent/30 border border-gray-100 dark:border-neutral-800"
+              : "bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-500 hover:text-accent hover:border-accent/30 border border-gray-100 dark:border-neutral-800"
               }`}
           >
             <i
@@ -367,7 +367,7 @@ export default function AiVoiceAssistant({ isActive }) {
         {(isListening || transcript || aiResponse || error || loading) && (
           <button
             onClick={handleCancel}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-950 text-[10px] font-product-sans font-bold text-gray-400 dark:text-neutral-600 hover:text-red-500 hover:bg-red-500/10 border border-gray-200 dark:border-neutral-800 transition-all duration-300 animate-in fade-in slide-in-from-top-2 cursor-pointer  st"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-950 text-[10px] font-product-sans font-bold text-gray-600 dark:text-neutral-600 hover:text-red-500 hover:bg-red-500/10 border border-gray-200 dark:border-neutral-800 transition-all duration-300 animate-in fade-in slide-in-from-top-2 cursor-pointer  st"
           >
             <i className="hgi hgi-stroke hgi-cancel-01 text-xs"></i>
             cancel
@@ -377,7 +377,7 @@ export default function AiVoiceAssistant({ isActive }) {
 
       <div className="flex flex-col items-center gap-4 text-center max-w-lg px-4">
         <div className="flex flex-col items-center gap-2">
-          <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-500 font-product-sans  tracking-[0.2em]">
+          <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-500 font-product-sans  tracking-[0.2em]">
             {isListening ? (
               <span className="flex items-center gap-2 animate-pulse text-accent">
                 <i className="hgi-stroke hgi-cleaning-01 text-xs"></i>
@@ -395,7 +395,7 @@ export default function AiVoiceAssistant({ isActive }) {
         </div>
 
         {transcript && (
-          <p className="text-sm text-gray-500 dark:text-neutral-400 italic font-product-sans leading-relaxed">
+          <p className="text-sm text-gray-700 dark:text-neutral-400 italic font-product-sans leading-relaxed">
             "{transcript}"
           </p>
         )}
@@ -415,7 +415,7 @@ export default function AiVoiceAssistant({ isActive }) {
         )}
 
         {!isListening && !loading && !transcript && (
-          <p className="text-[10px] text-gray-400 dark:text-neutral-600  tracking-[0.3em] font-bold">
+          <p className="text-[10px] text-gray-600 dark:text-neutral-600  tracking-[0.3em] font-bold">
             Click the mic and say a command
           </p>
         )}

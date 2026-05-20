@@ -462,7 +462,7 @@ export default function PersonalVault({
                   onClick={() => setActiveSection(tab.id)}
                   className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-product-sans font-bold transition-all duration-300 capitalize cursor-pointer ${activeSection === tab.id
                     ? "bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    : "text-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
                     }`}
                 >
                   <i className={`hgi-stroke ${tab.icon} text-base`}></i>
@@ -495,7 +495,7 @@ export default function PersonalVault({
           {user && !loading && activeSection === "todos" && (
             <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+                <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
                   personal tasks
                 </h3>
                 <div className="flex items-center gap-1.5">
@@ -505,7 +505,7 @@ export default function PersonalVault({
                       onClick={() => setTodoFilter(f)}
                       className={`px-3 py-1 text-[10px] font-product-sans font-bold border transition-all rounded-full  tracking-tight cursor-pointer ${todoFilter === f
                         ? "bg-accent/10 border-accent/20 text-accent font-bold"
-                        : "bg-transparent border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        : "bg-transparent border-transparent text-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
                         }`}
                     >
                       {f}
@@ -527,7 +527,7 @@ export default function PersonalVault({
                     value={newTodo}
                     onChange={(e) => setNewTodo(e.target.value)}
                     placeholder="What's on your mind?"
-                    className="flex-1 px-4 py-2.5 bg-transparent font-product-sans text-sm text-gray-900 dark:text-gray-100 outline-none placeholder:text-gray-400 dark:placeholder:text-neutral-700"
+                    className="flex-1 px-4 py-2.5 bg-transparent font-product-sans text-sm text-gray-900 dark:text-gray-100 outline-none placeholder:text-gray-600 dark:placeholder:text-neutral-700"
                   />
                   <div className="flex gap-1.5">
                     <button
@@ -575,7 +575,7 @@ export default function PersonalVault({
                   ))}
                 {todos.length === 0 && (
                   <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-                    <p className="text-sm text-gray-400 font-product-sans font-bold">
+                    <p className="text-sm text-gray-600 font-product-sans font-bold">
                       no tasks found.
                     </p>
                   </div>
@@ -598,20 +598,20 @@ export default function PersonalVault({
                     />
 
                     <div className="flex flex-wrap items-center gap-3 -mt-2">
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400 font-product-sans">
+                      <div className="flex items-center gap-2 text-[11px] text-gray-600 font-product-sans">
                         <i className="hgi-stroke hgi-tag-01 text-xs text-accent"></i>
                         <input
                           type="text"
                           value={noteTags}
                           onChange={(e) => setNoteTags(e.target.value)}
                           placeholder="add tags..."
-                          className="bg-transparent outline-none font-bold text-accent placeholder:text-gray-300 dark:placeholder:text-neutral-700 w-32"
+                          className="bg-transparent outline-none font-bold text-accent placeholder:text-gray-500 dark:placeholder:text-neutral-700 w-32"
                         />
                       </div>
                       <span className="text-gray-200 dark:text-neutral-800 text-xs">
                         ·
                       </span>
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-600 font-product-sans ">
+                      <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-600 font-product-sans ">
                         {editingNote?.id
                           ? `Last saved: ${new Date(editingNote.updated_at).toLocaleDateString()}`
                           : "New Entry"}
@@ -649,7 +649,7 @@ export default function PersonalVault({
                       <button
                         onClick={() => setEditingNote(null)}
                         disabled={saving}
-                        className="px-4 py-2 text-[11px] font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-product-sans  disabled:opacity-50 cursor-pointer"
+                        className="px-4 py-2 text-[11px] font-bold text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-product-sans  disabled:opacity-50 cursor-pointer"
                       >
                         discard
                       </button>
@@ -671,7 +671,7 @@ export default function PersonalVault({
               ) : (
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-gray-400 dark:text-neutral-600 font-product-sans">
+                    <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-600 font-product-sans">
                       your notes
                     </h3>
                     <button
@@ -690,7 +690,7 @@ export default function PersonalVault({
 
                   {notes.length === 0 && (
                     <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
-                      <p className="text-sm text-gray-400 font-product-sans">
+                      <p className="text-sm text-gray-600 font-product-sans">
                         No notes found. Create your first one!
                       </p>
                     </div>
@@ -707,7 +707,7 @@ export default function PersonalVault({
                       }}
                       className="group cursor-pointer relative flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-400 shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 shrink-0">
                         <i className="hgi-stroke hgi-note-01 text-lg"></i>
                       </div>
 
@@ -726,18 +726,18 @@ export default function PersonalVault({
                               </span>
                             ))}
                           {note.tags && note.tags.length > 1 && (
-                            <span className="text-[9px] font-bold text-gray-400 font-product-sans">
+                            <span className="text-[9px] font-bold text-gray-600 font-product-sans">
                               +{note.tags.length - 1}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-500 font-product-sans truncate">
+                        <p className="text-xs text-gray-700 dark:text-neutral-500 font-product-sans truncate">
                           {note.content}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <span className="text-[10px] font-bold text-gray-300 dark:text-neutral-700 font-product-sans  transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-700 font-product-sans  transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
                           {new Date(
                             note.updated_at || note.created_at,
                           ).toLocaleDateString("en-US", {
@@ -746,7 +746,7 @@ export default function PersonalVault({
                           })}
                         </span>
                         <div className="absolute right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <button className="p-2 text-gray-400 hover:text-accent transition-colors cursor-pointer">
+                          <button className="p-2 text-gray-600 hover:text-accent transition-colors cursor-pointer">
                             <i className="hgi-stroke hgi-pencil-edit-01"></i>
                           </button>
                           <button
@@ -754,7 +754,7 @@ export default function PersonalVault({
                               e.stopPropagation();
                               deleteNote(note.id);
                             }}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                            className="p-2 text-gray-600 hover:text-red-500 transition-colors cursor-pointer"
                           >
                             <i className="hgi-stroke hgi-delete-02"></i>
                           </button>
@@ -793,7 +793,7 @@ export default function PersonalVault({
                     key={sIdx}
                     className="flex items-center py-5 pl-8 border-b border-gray-50 dark:border-neutral-950/50 last:border-0"
                   >
-                    <span className="text-sm text-gray-500 dark:text-neutral-600 font-product-sans leading-none">
+                    <span className="text-sm text-gray-700 dark:text-neutral-600 font-product-sans leading-none">
                       {sub}
                     </span>
                   </div>
@@ -806,7 +806,7 @@ export default function PersonalVault({
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-50 dark:border-neutral-950">
           <button
             onClick={() => setAiPreview(null)}
-            className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer"
+            className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer"
           >
             discard
           </button>
@@ -837,14 +837,14 @@ export default function PersonalVault({
               onChange={(e) => setSubtaskInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && confirmAddSubtask()}
               placeholder="What needs to be done?"
-              className="w-full bg-gray-50/50 dark:bg-neutral-900/30 border border-gray-100 dark:border-neutral-800/50 rounded-2xl px-5 py-4 text-sm font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-700 focus:outline-none focus:border-accent/30 transition-all"
+              className="w-full bg-gray-50/50 dark:bg-neutral-900/30 border border-gray-100 dark:border-neutral-800/50 rounded-2xl px-5 py-4 text-sm font-product-sans text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 focus:outline-none focus:border-accent/30 transition-all"
             />
           </div>
 
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setSubtaskModal(null)}
-              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
+              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
             >
               cancel
             </button>
@@ -869,14 +869,14 @@ export default function PersonalVault({
         maxWidth="max-w-sm"
       >
         <div className="flex flex-col gap-6">
-          <p className="text-sm text-gray-500 dark:text-neutral-500 font-product-sans leading-relaxed">
+          <p className="text-sm text-gray-700 dark:text-neutral-500 font-product-sans leading-relaxed">
             {confirmModal?.message}
           </p>
 
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setConfirmModal(null)}
-              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
+              className="px-4 py-2 text-[10px] font-product-sans font-bold text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer  r"
             >
               cancel
             </button>
@@ -914,7 +914,7 @@ const TodoItem = memo(
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
-                className={`cursor-pointer w-4 h-4 flex items-center justify-center text-gray-400 hover:text-accent transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}
+                className={`cursor-pointer w-4 h-4 flex items-center justify-center text-gray-600 hover:text-accent transition-transform duration-300 ${isExpanded ? "rotate-90" : ""}`}
               >
                 <i className="hgi-stroke hgi-arrow-right-01 text-[10px]"></i>
               </button>
@@ -942,7 +942,7 @@ const TodoItem = memo(
           <div className="flex-1 min-w-0">
             <p
               className={`font-product-sans text-sm font-bold transition-all duration-500 truncate ${todo.completed
-                ? "text-gray-400 dark:text-neutral-600 line-through"
+                ? "text-gray-600 dark:text-neutral-600 line-through"
                 : "text-gray-900 dark:text-gray-100"
                 }`}
             >
@@ -956,7 +956,7 @@ const TodoItem = memo(
                 e.stopPropagation();
                 onAddSub(rootTodo, todo.id);
               }}
-              className="p-2 text-gray-400 hover:text-accent transition-colors shrink-0 cursor-pointer"
+              className="p-2 text-gray-600 hover:text-accent transition-colors shrink-0 cursor-pointer"
               title="Add subtask"
             >
               <i className="hgi hgi-stroke hgi-plus-sign-square"></i>
@@ -966,7 +966,7 @@ const TodoItem = memo(
                 e.stopPropagation();
                 onDelete(rootTodo, todo.id, isRoot);
               }}
-              className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
+              className="p-2 text-gray-600 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
             >
               <i className="hgi-stroke hgi-delete-02 text-base"></i>
             </button>

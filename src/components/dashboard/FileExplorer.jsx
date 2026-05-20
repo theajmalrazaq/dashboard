@@ -106,7 +106,7 @@ export default function FileExplorer({ isActive }) {
           {path !== DEFAULT_HOME && (
             <button
               onClick={goBack}
-              className="cursor-pointer text-gray-400 hover:text-accent transition-colors"
+              className="cursor-pointer text-gray-600 hover:text-accent transition-colors"
             >
               <i className="hgi-stroke hgi-arrow-left-01 text-lg"></i>
             </button>
@@ -115,7 +115,7 @@ export default function FileExplorer({ isActive }) {
             <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans lowercase truncate max-w-[200px] sm:max-w-md">
               {path.replace(DEFAULT_HOME, "~") || "root"}
             </h3>
-            <p className="text-[10px] text-gray-400 dark:text-neutral-600 font-product-sans lowercase">
+            <p className="text-[10px] text-gray-600 dark:text-neutral-600 font-product-sans lowercase">
               {items.length} items
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function FileExplorer({ isActive }) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => readDirectory(path)}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900 text-gray-400 hover:text-accent transition-all cursor-pointer border border-gray-100 dark:border-neutral-800"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900 text-gray-600 hover:text-accent transition-all cursor-pointer border border-gray-100 dark:border-neutral-800"
           >
             <i className="hgi-stroke hgi-refresh text-sm"></i>
           </button>
@@ -140,7 +140,7 @@ export default function FileExplorer({ isActive }) {
             className="group flex flex-col items-center gap-3 p-4 bg-transparent hover:bg-gray-400/5 dark:hover:bg-white/[0.02] rounded-[32px] border border-transparent hover:border-gray-100 dark:hover:border-neutral-900 transition-all duration-500 cursor-pointer"
           >
             <div
-              className={`w-16 h-16 flex items-center justify-center rounded-[24px] bg-gray-50 dark:bg-neutral-900/50 text-gray-400 group-hover:text-accent group-hover:bg-accent/5 transition-all duration-300 transform group-hover:scale-110 border border-transparent group-hover:border-accent/10 relative overflow-hidden`}
+              className={`w-16 h-16 flex items-center justify-center rounded-[24px] bg-gray-50 dark:bg-neutral-900/50 text-gray-600 group-hover:text-accent group-hover:bg-accent/5 transition-all duration-300 transform group-hover:scale-110 border border-transparent group-hover:border-accent/10 relative overflow-hidden`}
             >
               <i className={`hgi-stroke ${getIcon(item)} text-2xl`}></i>
             </div>
@@ -151,7 +151,7 @@ export default function FileExplorer({ isActive }) {
         ))}
 
         {items.length === 0 && !loading && (
-          <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] flex flex-col items-center justify-center text-gray-400">
+          <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] flex flex-col items-center justify-center text-gray-600">
             <i className="hgi hgi-stroke hgi-folder-open text-3xl mb-2 opacity-50"></i>
             <p className="text-sm font-product-sans">Empty directory</p>
           </div>
@@ -199,12 +199,12 @@ export default function FileExplorer({ isActive }) {
             ) : (
               <div className="text-center">
                 <i
-                  className={`hgi hgi-stroke ${getIcon({ name: preview?.name, kind: "file" })} text-6xl text-gray-400 mb-4 opacity-50`}
+                  className={`hgi hgi-stroke ${getIcon({ name: preview?.name, kind: "file" })} text-6xl text-gray-600 mb-4 opacity-50`}
                 ></i>
-                <p className="text-lg font-product-sans text-gray-500">
+                <p className="text-lg font-product-sans text-gray-700">
                   Preview not available via System API yet.
                 </p>
-                <p className="text-xs text-gray-400 mt-2 font-mono">
+                <p className="text-xs text-gray-600 mt-2 font-mono">
                   {preview?.url}
                 </p>
               </div>
