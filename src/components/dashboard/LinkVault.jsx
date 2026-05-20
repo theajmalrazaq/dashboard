@@ -188,77 +188,67 @@ export default function LinkVault({ isActive = true }) {
           <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : filteredLinks.length > 0 ? (
-        <div className="flex flex-col gap-3 px-2">
+        <div className="flex flex-col gap-0 px-2">
           {filteredLinks.map((link) => (
             <div
               key={link.id}
-              className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-neutral-950/20 border border-gray-100 dark:border-neutral-900/80 rounded-[20px] hover:border-accent/20 transition-all duration-300 relative"
+              className="group relative flex items-center gap-4 p-4 bg-transparent border-b border-gray-100 dark:border-neutral-900 transition-all duration-300 hover:bg-gray-50/30 dark:hover:bg-white/[0.01]"
             >
-              {/* Left Details */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
-                {/* Title */}
-                <div className="min-w-[140px] max-w-[180px] shrink-0">
-                  <h4 className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate font-product-sans lowercase">
-                    {link.title}
-                  </h4>
-                </div>
+              {/* Left Icon */}
+              <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-900/50 flex items-center justify-center text-gray-600 dark:text-neutral-400 shrink-0">
+                <i className="hgi hgi-stroke hgi-link-02 text-lg"></i>
+              </div>
 
-                {/* URL with Copy icon right in front of it */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => copyToClipboard(link.url)}
-                    className="p-1 text-gray-600 dark:text-neutral-400 hover:text-accent transition-colors cursor-pointer shrink-0"
-                    title="Copy URL"
-                  >
-                    <i className="hgi hgi-stroke hgi-copy-01 text-[11px]"></i>
-                  </button>
+              {/* Middle Details */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 font-product-sans truncate text-sm lowercase">
+                    {link.title}
+                  </h3>
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[10px] font-product-sans text-accent hover:underline lowercase truncate max-w-[200px]"
+                    className="text-xs font-product-sans text-accent hover:underline lowercase truncate max-w-[250px]"
                   >
                     {link.url.replace(/^https?:\/\/(www\.)?/i, "")}
                   </a>
                 </div>
-
-                {/* Notes */}
-                <div className="flex-1 min-w-0">
-                  {link.notes ? (
-                    <p className="text-[10px] text-gray-700 dark:text-neutral-300 font-product-sans truncate lowercase" title={link.notes}>
-                      {link.notes}
-                    </p>
-                  ) : (
-                    <span className="text-[9px] text-gray-500 dark:text-neutral-500 italic lowercase">no notes</span>
-                  )}
-                </div>
+                <p className="text-xs text-gray-700 dark:text-neutral-500 font-product-sans truncate lowercase">
+                  {link.notes || <span className="text-[10px] text-gray-600 dark:text-neutral-600 italic">no notes</span>}
+                </p>
               </div>
 
-              {/* Actions Right */}
-              <div className="flex items-center gap-3 shrink-0">
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 text-[9px] font-bold font-product-sans rounded-full bg-accent/10 hover:bg-accent/15 text-accent border border-accent/10 transition-all cursor-pointer lowercase"
-                >
-                  open
-                </a>
+              {/* Right Action/Date area */}
+              <div className="flex items-center gap-4 shrink-0 pr-2">
+                <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-700 font-product-sans transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
+                  {new Date(link.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
                 
-                <div className="flex items-center gap-1.5 border-l border-gray-100 dark:border-neutral-900/50 pl-3">
+                <div className="absolute right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <button
                     onClick={() => handleOpenEdit(link)}
-                    className="p-1.5 text-gray-600 dark:text-neutral-400 hover:text-accent transition-colors cursor-pointer"
+                    className="p-2 text-gray-600 dark:text-neutral-400 hover:text-accent transition-colors cursor-pointer"
                     title="Edit"
                   >
-                    <i className="hgi hgi-stroke hgi-pencil-01 text-[11px]"></i>
+                    <i className="hgi hgi-stroke hgi-pencil-01 text-base"></i>
+                  </button>
+                  <button
+                    onClick={() => copyToClipboard(link.url)}
+                    className="p-2 text-gray-600 dark:text-neutral-400 hover:text-accent transition-colors cursor-pointer"
+                    title="Copy URL"
+                  >
+                    <i className="hgi hgi-stroke hgi-copy-01 text-base"></i>
                   </button>
                   <button
                     onClick={() => handleDelete(link.id)}
-                    className="p-1.5 text-gray-600 dark:text-neutral-400 hover:text-red-500 transition-colors cursor-pointer"
+                    className="p-2 text-gray-600 dark:text-neutral-400 hover:text-red-500 transition-colors cursor-pointer"
                     title="Delete"
                   >
-                    <i className="hgi hgi-stroke hgi-delete-02 text-[11px]"></i>
+                    <i className="hgi hgi-stroke hgi-delete-02 text-base"></i>
                   </button>
                 </div>
               </div>
@@ -266,7 +256,7 @@ export default function LinkVault({ isActive = true }) {
           ))}
         </div>
       ) : (
-        <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] flex flex-col items-center justify-center text-gray-400 px-4">
+        <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] flex flex-col items-center justify-center text-gray-600 dark:text-neutral-500 px-4">
           <i className="hgi hgi-stroke hgi-link-02 text-3xl mb-2 opacity-50"></i>
           <p className="text-sm font-product-sans lowercase">no links stored in vault yet.</p>
           <button
