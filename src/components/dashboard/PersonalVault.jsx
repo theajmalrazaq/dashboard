@@ -503,7 +503,7 @@ export default function PersonalVault({
                     <button
                       key={f}
                       onClick={() => setTodoFilter(f)}
-                      className={`px-3 py-1 text-[10px] font-product-sans font-bold border transition-all rounded-full  tracking-tight cursor-pointer ${todoFilter === f
+                      className={`px-3 py-1 text-[10px] font-product-sans font-bold border transition-all rounded-full   cursor-pointer ${todoFilter === f
                         ? "bg-accent/10 border-accent/20 text-accent font-bold"
                         : "bg-transparent border-transparent text-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
                         }`}

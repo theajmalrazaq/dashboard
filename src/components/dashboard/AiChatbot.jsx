@@ -578,7 +578,7 @@ export default function AiChatbot({
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-product-sans">
                 Review {notificationAction.type === "note" ? "Note" : "Tasks"}
               </h3>
-              <p className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans  tracking-[0.2em] mt-1">
+              <p className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans  mt-1">
                 Preview your{" "}
                 {notificationAction.type === "note" ? "thought" : "items"}{" "}
                 before saving
@@ -647,7 +647,7 @@ export default function AiChatbot({
               </button>
               <button
                 onClick={confirmPendingAction}
-                className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30  tracking-[0.1em]"
+                className="cursor-pointer inline-flex items-center gap-2 px-6 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30"
               >
                 <i className="hgi-stroke hgi-tick-01 text-sm text-accent"></i>
                 <span>deploy to vault</span>

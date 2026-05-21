@@ -9,9 +9,9 @@ import FileExplorer from "./FileExplorer";
 import SystemApps from "./SystemApps";
 import Terminal from "./Terminal";
 import ClipboardManager from "./ClipboardManager";
-import AiVoiceAssistant from "./AiVoiceAssistant";
 import ChatInput from "./ChatInput";
 import LinkVault from "./LinkVault";
+import AiVoiceAssistant from "./AiVoiceAssistant";
 import { FlickeringGrid } from "../ui/FlickeringGrid";
 
 // 7-Segment Clock Constants
@@ -440,6 +440,7 @@ export default function DashboardHome() {
     powerProfile: { active: "", available: [] },
     reminders: [],
   });
+  const [isChatShortcutLocked, setIsChatShortcutLocked] = useState(false);
 
   const [executing, setExecuting] = useState(null);
   const [status, setStatus] = useState({ type: null, message: "" });
@@ -511,7 +512,7 @@ export default function DashboardHome() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Only trigger if we are on the home view (no active tab)
-      if (activeTab) return;
+      if (activeTab || isChatShortcutLocked) return;
 
       // Check if user is typing in an input/textarea/editable element
       const activeTag = document.activeElement?.tagName;
@@ -587,7 +588,7 @@ export default function DashboardHome() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeTab]);
+  }, [activeTab, isChatShortcutLocked]);
 
   // Handle Escape key to return to Home View
   useEffect(() => {
@@ -710,9 +711,9 @@ export default function DashboardHome() {
       blog: "blog",
       feed: "feed",
       chat: "chat",
-      voice: "voice",
       files: "files",
       clip: "clip",
+      voice: "voice",
       terminal: "terminal",
       system: "system",
       notes: "notes",
@@ -1085,6 +1086,7 @@ export default function DashboardHome() {
           onViewChange={handleOpenChatHistory}
           onTabChange={handleTabChange}
           onNewChat={handleNewChatFromHome}
+          onShortcutScopeChange={setIsChatShortcutLocked}
           onLoadPuter={() => { }}
         />
       )}

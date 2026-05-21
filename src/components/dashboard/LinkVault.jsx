@@ -18,38 +18,72 @@ export default function LinkVault({ isActive = true }) {
   const [status, setStatus] = useState({ type: null, message: "" });
 
   useEffect(() => {
-    checkUser();
-  }, []);
+    if (!isActive) return;
 
-  useEffect(() => {
-    if (user && isActive) {
-      fetchLinks();
-    }
-  }, [user, isActive]);
+    let cancelled = false;
 
-  const checkUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    setUser(user);
-    if (!user) setLoading(false);
-  };
+    const loadLinks = async () => {
+      setLoading(true);
 
-  const fetchLinks = async () => {
-    if (!user) return;
-    setLoading(true);
+      try {
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        setUser(currentUser ?? null);
+
+        if (!currentUser) {
+          setLinks([]);
+          return;
+        }
+
+        await fetchLinks(currentUser, cancelled);
+      } catch (err) {
+        if (cancelled) return;
+
+        console.error("Failed to initialize Link Vault:", err);
+        setLinks([]);
+        setStatus({ type: "error", message: "Could not load links." });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadLinks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive]);
+
+  const normalizeLink = (link) => ({
+    ...link,
+    title: typeof link?.title === "string" ? link.title : "",
+    url: typeof link?.url === "string" ? link.url : "",
+    notes: typeof link?.notes === "string" ? link.notes : "",
+    created_at: link?.created_at ?? null,
+  });
+
+  const fetchLinks = async (currentUser = user, cancelled = false) => {
+    if (!currentUser) return;
+
     const { data, error } = await supabase
       .from("links")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", currentUser.id)
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setLinks(data || []);
-    } else {
-      console.error("Failed to fetch links:", error);
+    if (cancelled) return;
+
+    if (error) {
+      throw error;
     }
-    setLoading(false);
+
+    setLinks((data || []).map(normalizeLink));
   };
 
   const handleOpenAdd = () => {
@@ -133,8 +167,12 @@ export default function LinkVault({ isActive = true }) {
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
+    navigator.clipboard
+      .writeText(text)
+      .then(() => setStatus({ type: "success", message: "Copied to clipboard." }))
+      .catch(() =>
+        setStatus({ type: "error", message: "Could not copy that link." }),
+      );
   };
 
   const filteredLinks = links.filter((link) => {
@@ -142,7 +180,7 @@ export default function LinkVault({ isActive = true }) {
     return (
       link.title.toLowerCase().includes(query) ||
       link.url.toLowerCase().includes(query) ||
-      (link.notes && link.notes.toLowerCase().includes(query))
+      link.notes.toLowerCase().includes(query)
     );
   });
 
@@ -222,10 +260,12 @@ export default function LinkVault({ isActive = true }) {
               {/* Right Action/Date area */}
               <div className="flex items-center gap-4 shrink-0 pr-2">
                 <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-700 font-product-sans transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
-                  {new Date(link.created_at).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {link.created_at
+                    ? new Date(link.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                    : "--"}
                 </span>
                 
                 <div className="absolute right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

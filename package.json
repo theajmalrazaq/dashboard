@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@xenova/transformers": "^2.13.4",
     "aos": "^2.3.4",
     "astro": "^5.17.1",
     "astro-seo-meta": "^5.1.0",

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
 import DashboardModal from "./DashboardModal";
+import { getWhisperTranscriber } from "../../lib/whisper";
 
 const SLASH_COMMANDS = [
   {
@@ -69,7 +69,6 @@ const AT_COMMANDS = [
   { name: "blog", description: "Personal Blog", icon: "hgi-note-01" },
   { name: "feed", description: "GitHub Feed", icon: "hgi-github" },
   { name: "chat", description: "AI Chatbot", icon: "hgi-ai-chat-02" },
-  { name: "voice", description: "Voice Assistant", icon: "hgi-mic-01" },
   { name: "files", description: "File Explorer", icon: "hgi-folder-02" },
   { name: "clip", description: "Clipboard", icon: "hgi-copy-01" },
   {
@@ -85,6 +84,7 @@ const AT_COMMANDS = [
   { name: "notes", description: "Notes", icon: "hgi-note" },
   { name: "tasks", description: "Tasks", icon: "hgi-task-01" },
   { name: "links", description: "Link Vault", icon: "hgi-link-02" },
+  { name: "voice", description: "Voice Assistant", icon: "hgi-mic-01" },
 ];
 
 export default function ChatInput({
@@ -101,6 +101,7 @@ export default function ChatInput({
   onTabChange,
   onNewChat,
   onLoadPuter,
+  onShortcutScopeChange,
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
@@ -131,6 +132,221 @@ export default function ChatInput({
   const [customMinutes, setCustomMinutes] = useState("");
   const [isCustomActive, setIsCustomActive] = useState(false);
   const [reminderStartTime, setReminderStartTime] = useState(0);
+  const [isListening, setIsListening] = useState(false);
+  const [isInitializingWhisper, setIsInitializingWhisper] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const streamRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const whisperRef = useRef(null);
+  const recordingTimeoutRef = useRef(null);
+
+  const getMicrophoneStatusMessage = (err) => {
+    if (err?.name === "NotAllowedError") {
+      return "Microphone permission was denied.";
+    }
+
+    if (err?.name === "NotFoundError") {
+      return "No microphone was found on this device.";
+    }
+
+    if (err?.name === "NotReadableError") {
+      return "The microphone is busy in another app.";
+    }
+
+    if (err?.name === "SecurityError") {
+      return "Microphone access requires HTTPS or localhost.";
+    }
+
+    return "Microphone access failed.";
+  };
+
+  const ensureWhisperReady = async () => {
+    if (whisperRef.current) {
+      return whisperRef.current;
+    }
+
+    setIsInitializingWhisper(true);
+    try {
+      const transcriber = await getWhisperTranscriber();
+      whisperRef.current = transcriber;
+      return transcriber;
+    } catch (err) {
+      console.error("Failed to initialize Whisper:", err);
+      setStatus({ type: "error", message: "Voice input could not be initialized." });
+      const nextError = new Error("WHISPER_INIT_FAILED");
+      nextError.cause = err;
+      throw nextError;
+    } finally {
+      setIsInitializingWhisper(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleVoiceInput = async () => {
+    if (isListeningRef.current) {
+      // Stop listening
+      console.log("Stopping listening");
+      isListeningRef.current = false;
+      setIsListening(false);
+
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    } else {
+      // Start listening
+      try {
+        if (!window.isSecureContext) {
+          setStatus({
+            type: "error",
+            message: "Microphone access requires HTTPS or localhost.",
+          });
+          return;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setStatus({
+            type: "error",
+            message: "This browser does not support microphone access.",
+          });
+          return;
+        }
+
+        if (typeof MediaRecorder === "undefined") {
+          setStatus({
+            type: "error",
+            message: "This browser does not support in-browser audio recording.",
+          });
+          return;
+        }
+
+        await ensureWhisperReady();
+
+        console.log("Starting listening");
+        isListeningRef.current = true;
+        setIsListening(true);
+        setVoiceTranscript("");
+        setInput("");
+        audioChunksRef.current = [];
+
+        // Request microphone access
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+
+        // Create media recorder
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          if (recordingTimeoutRef.current) {
+            clearTimeout(recordingTimeoutRef.current);
+            recordingTimeoutRef.current = null;
+          }
+
+          if (!isListeningRef.current) {
+            if (!audioChunksRef.current.length) {
+              return;
+            }
+
+            // Process audio with Whisper
+            const mimeType =
+              mediaRecorder.mimeType ||
+              audioChunksRef.current[0]?.type ||
+              "audio/webm";
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            try {
+              console.log("Processing audio with Whisper...");
+              const result = await whisperRef.current(audioUrl);
+              const transcript = result.text.trim();
+              console.log("Whisper result:", transcript);
+
+              if (transcript) {
+                setVoiceTranscript(transcript);
+                setInput(transcript);
+                requestAnimationFrame(() => {
+                  if (inputRef.current) {
+                    inputRef.current.focus();
+                    inputRef.current.setSelectionRange(transcript.length, transcript.length);
+                  }
+                });
+              }
+            } catch (err) {
+              console.error("Whisper processing error:", err);
+            } finally {
+              URL.revokeObjectURL(audioUrl);
+            }
+          }
+        };
+
+        mediaRecorder.start();
+
+        // Stop recording after 30 seconds of silence or max 2 minutes
+        recordingTimeoutRef.current = setTimeout(() => {
+          if (isListeningRef.current) {
+            console.log("Max recording time reached");
+            isListeningRef.current = false;
+            setIsListening(false);
+            mediaRecorder.stop();
+          }
+        }, 120000);
+      } catch (err) {
+        if (err?.name === "AbortError") {
+          isListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+
+        if (err?.message === "WHISPER_INIT_FAILED") {
+          isListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+
+        if (err?.name !== "AbortError") {
+          console.error("Microphone error:", err);
+        }
+
+        setStatus({
+          type: "error",
+          message: getMicrophoneStatusMessage(err),
+        });
+        isListeningRef.current = false;
+        setIsListening(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isCustomActive) {
@@ -213,6 +429,28 @@ export default function ChatInput({
       });
     }
   }, [selectedIndex, selectedTabIndex, selectedDollarIndex]);
+
+  useEffect(() => {
+    const isPopupNavigating =
+      showCommands ||
+      showTabCommands ||
+      showDollarCommands ||
+      showAddModal ||
+      reminderSetupStep === "duration";
+
+    onShortcutScopeChange?.(isPopupNavigating);
+  }, [
+    onShortcutScopeChange,
+    reminderSetupStep,
+    showAddModal,
+    showCommands,
+    showDollarCommands,
+    showTabCommands,
+  ]);
+
+  useEffect(() => {
+    return () => onShortcutScopeChange?.(false);
+  }, [onShortcutScopeChange]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -497,7 +735,7 @@ export default function ChatInput({
                 setNewCommand({ ...newCommand, name: e.target.value })
               }
               placeholder="e.g., notion"
-              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
+              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/2 border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
             />
           </div>
 
@@ -512,7 +750,7 @@ export default function ChatInput({
                 setNewCommand({ ...newCommand, url: e.target.value })
               }
               placeholder="https://example.com"
-              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
+              className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-white/2 border border-gray-100 dark:border-neutral-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-neutral-700 font-product-sans text-sm rounded-3xl outline-none focus:border-accent/30 transition-all"
             />
           </div>
 
@@ -523,7 +761,7 @@ export default function ChatInput({
                 setShowAddModal(false);
                 setNewCommand({ name: "", url: "" });
               }}
-              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-200 dark:border-neutral-800 rounded-full hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:border-gray-300 dark:hover:border-neutral-700 transition-all duration-300  cursor-pointer"
+              className="flex-1 px-4 py-2 text-xs font-product-sans font-bold text-gray-700 dark:text-gray-300 bg-gray-50/50 dark:bg-white/2 border border-gray-200 dark:border-neutral-800 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-300 dark:hover:border-neutral-700 transition-all duration-300  cursor-pointer"
             >
               Cancel
             </button>
@@ -545,7 +783,7 @@ export default function ChatInput({
               {customCommands.map((cmd) => (
                 <div
                   key={cmd.name}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-neutral-900 rounded-full text-xs"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50/50 dark:bg-white/2 border border-gray-100 dark:border-neutral-900 rounded-full text-xs"
                 >
                   <span className="text-gray-900 dark:text-gray-100 font-product-sans font-medium">
                     /{cmd.name}
@@ -566,10 +804,10 @@ export default function ChatInput({
       </DashboardModal>
 
       {isActive && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-[100]">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-100">
           <form
             onSubmit={handleSend}
-            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[32px] p-1.5 px-4"
+            className="flex items-center gap-3 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-4xl p-1.5 px-4"
           >
             <button
               type="button"
@@ -616,27 +854,44 @@ export default function ChatInput({
               <input
                 ref={inputRef}
                 type="text"
-                value={input}
+                value={isListening ? voiceTranscript : input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setShowMenu(false)}
                 disabled={view === "history"}
-                readOnly={reminderSetupStep === "duration"}
+                readOnly={reminderSetupStep === "duration" || isListening}
                 placeholder={
                   view === "history"
                     ? "Viewing history..."
                     : isReminderActive
                       ? "what should we remind you of? (e.g. get some eggs)"
-                      : webSearch
-                        ? "Search the universe..."
-                        : "Ask Octo or type / for links, @ for tabs, $ for reminders..."
+                      : isListening
+                        ? "Listening..."
+                        : webSearch
+                          ? "Search the universe..."
+                          : "Ask Octo or type / for links, @ for tabs, $ for reminders..."
                 }
                 className="flex-1 bg-transparent border-none outline-none font-product-sans text-sm text-gray-900 dark:text-white placeholder:text-gray-700 dark:placeholder:text-gray-500 py-2 disabled:opacity-50"
               />
+	              <button
+	                type="button"
+	                onClick={toggleVoiceInput}
+	                disabled={isInitializingWhisper || view === "history"}
+	                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shrink-0 cursor-pointer ${isListening
+	                  ? "bg-red-500 text-white animate-pulse"
+	                  : "text-gray-700 dark:text-gray-400 hover:text-accent hover:bg-gray-100 dark:hover:bg-white/10"
+	                  }`}
+	                title={isListening ? "Stop listening" : isInitializingWhisper ? "Loading voice input" : "Start voice input"}
+	              >
+	                <i
+	                  className={`hgi-stroke ${isInitializingWhisper ? "hgi-loading animate-spin" : isListening ? "hgi-mic-02" : "hgi-mic-01"
+	                    } text-sm`}
+	                ></i>
+	              </button>
               <button
                 type="submit"
-                disabled={loading || !input.trim() || view === "history"}
-                className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 flex-shrink-0 cursor-pointer active:scale-95"
+                disabled={loading || (!input.trim() && !isListening) || view === "history"}
+                className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center transition-all duration-500 disabled:opacity-20 shrink-0 cursor-pointer active:scale-95"
               >
                 <i
                   className={`hgi-stroke ${loading ? "hgi-loading animate-spin" : "hgi-sent"} text-sm`}
@@ -644,7 +899,7 @@ export default function ChatInput({
               </button>
             </div>
 
-            <div className="w-[1px] h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
+            <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
 
             <button
               type="button"
@@ -667,7 +922,7 @@ export default function ChatInput({
                   key={cmd.name}
                   ref={selectedDollarIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "dollar")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedDollarIndex === index
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${selectedDollarIndex === index
                     ? "bg-accent text-white animate-pulse"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
@@ -690,7 +945,7 @@ export default function ChatInput({
                   key={cmd.name}
                   ref={selectedTabIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "tab")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${selectedTabIndex === index
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${selectedTabIndex === index
                     ? "bg-accent text-white"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
@@ -715,7 +970,7 @@ export default function ChatInput({
                   setInput("");
                   setShowCommands(false);
                 }}
-                className="px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/30"
+                className="px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/30"
                 title="Add new link"
               >
                 <i className="hgi-stroke hgi-plus-sign"></i> Add Link
@@ -725,7 +980,7 @@ export default function ChatInput({
                   key={cmd.name}
                   ref={selectedIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${selectedIndex === index
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 ${selectedIndex === index
                     ? "bg-accent text-white"
                     : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
                     }`}
@@ -737,7 +992,7 @@ export default function ChatInput({
           )}
 
           {isReminderActive && reminderSetupStep === "duration" && (
-            <div className="mt-2 flex flex-col gap-3 p-4 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-[24px] animate-in slide-in-from-top-4 duration-300 transition-all">
+            <div className="mt-2 flex flex-col gap-3 p-4 bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl animate-in slide-in-from-top-4 duration-300 transition-all">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-product-sans font-bold text-gray-600 dark:text-neutral-500  st px-1">
                   select duration
@@ -837,7 +1092,7 @@ export default function ChatInput({
           )}
 
           {showMenu && (
-            <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-[32px] p-6 animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
+            <div className="mt-4 bg-white/90 dark:bg-black/90 border border-gray-100 dark:border-neutral-900 rounded-4xl p-6 animate-in slide-in-from-top-6 zoom-in-95 duration-500 backdrop-blur-3xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
                   <h4 className="text-[10px] font-bold text-gray-600 dark:text-neutral-500 font-product-sans flex items-center gap-2  st">
@@ -853,8 +1108,8 @@ export default function ChatInput({
                           setShowMenu(false);
                         }}
                         className={`cursor-pointer flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-bold font-product-sans transition-all duration-300 border ${model === m.id
-                          ? "bg-accent/[0.05] border-accent/20 text-accent"
-                          : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-700 hover:border-gray-200 dark:hover:border-neutral-800"
+                          ? "bg-accent/5 border-accent/20 text-accent"
+                          : "bg-gray-50 dark:bg-white/3 border-transparent text-gray-700 hover:border-gray-200 dark:hover:border-neutral-800"
                           }`}
                       >
                         <i
@@ -875,8 +1130,8 @@ export default function ChatInput({
                     <button
                       onClick={() => setWebSearch(!webSearch)}
                       className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${webSearch
-                        ? "bg-emerald-500/[0.05] border-emerald-500/20 text-emerald-500"
-                        : "bg-gray-50 dark:bg-white/[0.03] border-transparent text-gray-700"
+                        ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500"
+                        : "bg-gray-50 dark:bg-white/3 border-transparent text-gray-700"
                         }`}
                     >
                       <span className="text-[11px] font-bold font-product-sans">
@@ -942,8 +1197,8 @@ export default function ChatInput({
 
       {/* Universal Floating Toast/Notification (Shadcn UI style) */}
       {status.message && (
-        <div className="fixed bottom-6 right-6 z-[999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="w-[360px] p-4 rounded-xl border flex items-start gap-3 backdrop-blur-md bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
+        <div className="fixed bottom-6 right-6 z-999 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="w-90 p-4 rounded-xl border flex items-start gap-3 backdrop-blur-md bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold leading-none lowercase">
                 {status.type === "success" ? "success" : status.type === "error" ? "error" : "system"}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { loadPuter } from "../../lib/puter";
+import { getWhisperTranscriber } from "../../lib/whisper";
 
 export default function AiVoiceAssistant({ isActive }) {
   const [isListening, setIsListening] = useState(false);
@@ -9,7 +10,7 @@ export default function AiVoiceAssistant({ isActive }) {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState(null);
-  const recognitionRef = useRef(null);
+  const [isInitializingWhisper, setIsInitializingWhisper] = useState(false);
   const [scripts, setScripts] = useState([]);
   const [memory, setMemory] = useState({ crab: [], octo: [] });
   const [vaultData, setVaultData] = useState({ notes: [], todos: [] });
@@ -19,12 +20,68 @@ export default function AiVoiceAssistant({ isActive }) {
     whatsappChat: "",
   });
   const isProcessing = useRef(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const streamRef = useRef(null);
+  const recordingTimeoutRef = useRef(null);
+  const whisperRef = useRef(null);
+
+  const getMicrophoneErrorMessage = (err) => {
+    if (err?.name === "NotAllowedError") {
+      return "Microphone permission was denied.";
+    }
+
+    if (err?.name === "NotFoundError") {
+      return "No microphone was found on this device.";
+    }
+
+    if (err?.name === "NotReadableError") {
+      return "The microphone is busy in another app.";
+    }
+
+    if (err?.name === "SecurityError") {
+      return "Microphone access requires HTTPS or localhost.";
+    }
+
+    return "Microphone access failed.";
+  };
 
   useEffect(() => {
+    if (!isActive) return;
+
     loadPuter().catch((e) =>
       console.warn("Failed to load Puter.js in AiVoiceAssistant:", e),
     );
-  }, []);
+  }, [isActive]);
+
+  const ensureWhisperReady = async () => {
+    if (whisperRef.current) {
+      return whisperRef.current;
+    }
+
+    setIsInitializingWhisper(true);
+    try {
+      const transcriber = await getWhisperTranscriber();
+      whisperRef.current = transcriber;
+      return transcriber;
+    } catch (err) {
+      console.error("Failed to initialize Whisper in AiVoiceAssistant:", err);
+      setError("Whisper could not be initialized.");
+      const nextError = new Error("WHISPER_INIT_FAILED");
+      nextError.cause = err;
+      throw nextError;
+    } finally {
+      setIsInitializingWhisper(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isActive || whisperRef.current) return;
+
+    ensureWhisperReady().catch(() => {
+      // Error state is handled in ensureWhisperReady.
+    });
+  }, [isActive]);
 
   // Fetch memory (facts about Crab and octo) from Supabase
   const fetchMemory = async () => {
@@ -115,65 +172,171 @@ export default function AiVoiceAssistant({ isActive }) {
   };
 
   useEffect(() => {
-    const prewarmDenoise = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { noiseSuppression: true, echoCancellation: true },
-        });
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (e) { }
-    };
+    if (!isActive) return;
 
-    prewarmDenoise();
     fetchScripts();
     fetchMemory();
     fetchVaultData();
   }, [isActive]);
 
   useEffect(() => {
-    if (
-      !("webkitSpeechRecognition" in window) &&
-      !("SpeechRecognition" in window)
-    ) {
-      setError("Speech recognition is not supported in this browser.");
-      return;
-    }
-
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = "en-US";
-
-    recognitionRef.current.onresult = (event) => {
-      let fullTranscript = "";
-      for (let i = 0; i < event.results.length; i++) {
-        fullTranscript += event.results[i][0].transcript;
+    return () => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
       }
-      setTranscript(fullTranscript);
-    };
-
-    recognitionRef.current.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current.onerror = (event) => {
-      console.error("Speech Recognition Error:", event.error);
-      setError(`Recognition error: ${event.error}`);
-      setIsListening(false);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
+  const speakResponse = (text) => {
+    if (!text || !("speechSynthesis" in window)) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   const toggleListening = async () => {
     if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      setTranscript("");
-      setAiResponse("");
-      setError(null);
-      recognitionRef.current.start();
+      setIsListening(false);
+
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      return;
+    }
+
+    setTranscript("");
+    setAiResponse("");
+    setError(null);
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    audioChunksRef.current = [];
+
+    try {
+      if (!window.isSecureContext) {
+        setError("Microphone access requires HTTPS or localhost.");
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError("This browser does not support microphone access.");
+        return;
+      }
+
+      if (typeof MediaRecorder === "undefined") {
+        setError("This browser does not support in-browser audio recording.");
+        return;
+      }
+
+      await ensureWhisperReady();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          noiseSuppression: true,
+          echoCancellation: true,
+        },
+      });
+      streamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        if (recordingTimeoutRef.current) {
+          clearTimeout(recordingTimeoutRef.current);
+          recordingTimeoutRef.current = null;
+        }
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+
+        if (!audioChunksRef.current.length) {
+          return;
+        }
+
+        const mimeType =
+          mediaRecorder.mimeType ||
+          audioChunksRef.current[0]?.type ||
+          "audio/webm";
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        try {
+          const result = await whisperRef.current(audioUrl);
+          const nextTranscript = result.text.trim();
+          setTranscript(nextTranscript);
+
+          if (nextTranscript) {
+            await processCommand(nextTranscript);
+          }
+        } catch (err) {
+          console.error("Whisper processing error in AiVoiceAssistant:", err);
+          setError("Could not transcribe that recording.");
+        } finally {
+          URL.revokeObjectURL(audioUrl);
+          audioChunksRef.current = [];
+        }
+      };
+
+      mediaRecorder.start();
       setIsListening(true);
+
+      recordingTimeoutRef.current = setTimeout(() => {
+        if (mediaRecorder.state !== "inactive") {
+          setIsListening(false);
+          mediaRecorder.stop();
+        }
+      }, 120000);
+    } catch (err) {
+      if (err?.name === "AbortError") {
+        setIsListening(false);
+        return;
+      }
+
+      if (err?.message === "WHISPER_INIT_FAILED") {
+        setIsListening(false);
+        return;
+      }
+
+      if (err?.name !== "AbortError") {
+        console.error("Voice assistant microphone error:", err);
+      }
+
+      setError(getMicrophoneErrorMessage(err));
+      setIsListening(false);
     }
   };
 
@@ -314,30 +477,42 @@ export default function AiVoiceAssistant({ isActive }) {
         { role: "user", content: text },
         { role: "assistant", content: cleanFinal },
       ]);
+      speakResponse(cleanFinal);
     } catch (err) {
       console.error("Voice processing error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
       isProcessing.current = false;
-      setTranscript("");
     }
   };
 
   const handleCancel = () => {
-    if (isListening) recognitionRef.current.stop();
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+
+    if (isListening && mediaRecorderRef.current?.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    setIsListening(false);
     setTranscript("");
     setAiResponse("");
     setError(null);
     setLoading(false);
     isProcessing.current = false;
   };
-
-  useEffect(() => {
-    if (!isListening && transcript && !loading) {
-      processCommand(transcript);
-    }
-  }, [isListening]);
 
   return (
     <div className="flex flex-col items-center justify-center gap-8 py-12 animate-in fade-in zoom-in-95 duration-700">
@@ -352,7 +527,7 @@ export default function AiVoiceAssistant({ isActive }) {
 
           <button
             onClick={toggleListening}
-            disabled={loading}
+            disabled={loading || isInitializingWhisper}
             className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 cursor-pointer ${isListening
               ? "bg-accent text-white scale-110"
               : "bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-500 hover:text-accent hover:border-accent/30 border border-gray-100 dark:border-neutral-800"
@@ -377,11 +552,16 @@ export default function AiVoiceAssistant({ isActive }) {
 
       <div className="flex flex-col items-center gap-4 text-center max-w-lg px-4">
         <div className="flex flex-col items-center gap-2">
-          <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-500 font-product-sans  tracking-[0.2em]">
+          <h3 className="text-sm font-bold text-gray-600 dark:text-neutral-500 font-product-sans  ">
             {isListening ? (
               <span className="flex items-center gap-2 animate-pulse text-accent">
                 <i className="hgi-stroke hgi-cleaning-01 text-xs"></i>
-                denoising active
+                listening...
+              </span>
+            ) : isInitializingWhisper ? (
+              <span className="flex items-center gap-2 text-blue-500">
+                <i className="hgi-stroke hgi-ai-network text-xs animate-spin-slow"></i>
+                loading whisper...
               </span>
             ) : loading ? (
               <span className="flex items-center gap-2 text-emerald-500">
@@ -414,9 +594,11 @@ export default function AiVoiceAssistant({ isActive }) {
           </p>
         )}
 
-        {!isListening && !loading && !transcript && (
-          <p className="text-[10px] text-gray-600 dark:text-neutral-600  tracking-[0.3em] font-bold">
-            Click the mic and say a command
+        {!isListening && !loading && !transcript && !error && (
+          <p className="text-[10px] font-product-sans font-bold text-gray-600 dark:text-neutral-600">
+            {isInitializingWhisper
+              ? "warming up whisper..."
+              : "Click the mic, speak, then tap again to send"}
           </p>
         )}
       </div>
