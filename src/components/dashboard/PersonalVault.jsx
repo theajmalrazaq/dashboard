@@ -1,7 +1,6 @@
 import { useState, useEffect, memo, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import DashboardModal from "./DashboardModal";
-import { loadPuter } from "../../lib/puter";
 
 export default function PersonalVault({
   initialSection = "notes",
@@ -19,10 +18,6 @@ export default function PersonalVault({
   const [noteTags, setNoteTags] = useState("");
   const [todoFilter, setTodoFilter] = useState("all"); // "all" | "pending" | "completed"
   const [user, setUser] = useState(null);
-  const [aiProcessing, setAiProcessing] = useState(false);
-  const [aiPreview, setAiPreview] = useState(null); // { type, data }
-  const [aiStatus, setAiStatus] = useState("");
-  const [puterReady, setPuterReady] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [subtaskModal, setSubtaskModal] = useState(null); // { rootTodo, parentId }
@@ -32,17 +27,7 @@ export default function PersonalVault({
   useEffect(() => {
     if (initialSection) setActiveSection(initialSection);
     checkUser();
-    loadPuterScript();
   }, [initialSection]);
-
-  const loadPuterScript = async () => {
-    try {
-      await loadPuter();
-      setPuterReady(true);
-    } catch (e) {
-      console.warn("Failed to load Puter.js in PersonalVault:", e);
-    }
-  };
 
   const checkUser = async () => {
     const {
@@ -334,118 +319,6 @@ export default function PersonalVault({
     });
   };
 
-  // --- AI Logic (Puter.js) ---
-  const fixGrammar = async () => {
-    if (!noteTitle.trim() && !noteContent.trim()) return;
-    setAiProcessing(true);
-    setAiStatus("Fixing grammar...");
-
-    try {
-      const prompt = `You are a professional editor. Fix the grammar, spelling, and flow of this note. 
-            Keep the tone natural but polished. 
-            Title: "${noteTitle}"
-            Content: "${noteContent}"
-            
-            Respond ONLY with valid JSON (no markdown code blocks):
-            {
-              "title": "the fixed title",
-              "content": "the fixed content"
-            }`;
-
-      const response = await window.puter.ai.chat(prompt);
-      const text =
-        typeof response === "string"
-          ? response
-          : response.message?.content ||
-          response.text ||
-          JSON.stringify(response);
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("Invalid AI response");
-      const data = JSON.parse(jsonMatch[0]);
-
-      setNoteTitle(data.title);
-      setNoteContent(data.content);
-      setAiStatus("Done!");
-      setTimeout(() => setAiStatus(""), 1500);
-    } catch (err) {
-      setAiStatus("Error fixing grammar.");
-    } finally {
-      setAiProcessing(false);
-    }
-  };
-
-  const generateTasks = async (e) => {
-    if (e) e.preventDefault();
-    if (!newTodo.trim()) return;
-    setAiProcessing(true);
-    setAiStatus("Planning tasks...");
-
-    try {
-      const prompt = `Goal: "${newTodo}"
-            Break this down into logical groups and items as described in the goal.
-            STRICT RULES:
-            1. Be LITERAL. Only include what is explicitly mentioned or naturally implied by the numbering (e.g. if "Ex 1.1 and 1.2" are mentioned, create those items).
-            2. Do NOT add generic fluff tasks like "setup", "review", or "read objective".
-            3. Group by the highest level mentioned (e.g. Chapter, Module, or Lab).
-            
-            Respond ONLY with a valid JSON array of objects:
-            [
-              { "text": "Group Title (e.g. Chapter 1)", "subtasks": ["Item (e.g. Ex 1.1)", "Item (e.g. Ex 1.2)"] }
-            ]`;
-
-      const response = await window.puter.ai.chat(prompt);
-      const text =
-        typeof response === "string"
-          ? response
-          : response.message?.content ||
-          response.text ||
-          JSON.stringify(response);
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("Invalid AI response");
-      const data = JSON.parse(jsonMatch[0]);
-
-      setAiPreview({ type: "todos", data });
-    } catch (err) {
-      setAiStatus("Error planning tasks.");
-    } finally {
-      setAiProcessing(false);
-    }
-  };
-
-  const addAiTasks = async () => {
-    if (!aiPreview || aiPreview.type !== "todos") return;
-    setLoading(true);
-
-    try {
-      const tasksToInsert = aiPreview.data.map((item) => ({
-        text: item.text,
-        user_id: user.id,
-        items: (item.subtasks || []).map((s) => ({
-          id: crypto.randomUUID(),
-          text: s,
-          completed: false,
-          items: [],
-        })),
-      }));
-
-      const { data, error } = await supabase
-        .from("todos")
-        .insert(tasksToInsert)
-        .select();
-
-      if (!error && data) {
-        setTodos([...data, ...todos]);
-        setNewTodo("");
-        setAiPreview(null);
-      }
-    } catch (err) {
-      // Error managed silently
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Move TodoItem outside the component below
 
   return (
     <>
@@ -538,19 +411,6 @@ export default function PersonalVault({
                       <i className="hgi-stroke hgi-plus text-sm"></i>
                       <span>Add</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={(e) => generateTasks(e)}
-                      disabled={aiProcessing || !newTodo.trim()}
-                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-xs font-product-sans font-bold text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-accent/20 hover:border-accent/40 disabled:opacity-30 "
-                    >
-                      {aiProcessing ? (
-                        <span className="w-3.5 h-3.5 border-2 border-accent border-t-transparent rounded-full animate-spin"></span>
-                      ) : (
-                        <i className="hgi-stroke hgi-magic-wand-01 text-sm"></i>
-                      )}
-                      <span>AI Plan</span>
-                    </button>
                   </div>
                 </form>
               </div>
@@ -628,23 +488,7 @@ export default function PersonalVault({
                   </div>
 
                   <div className="flex justify-between items-center mt-4 pt-6 border-t border-gray-50 dark:border-neutral-900/50">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={fixGrammar}
-                        disabled={aiProcessing}
-                        className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-[10px] font-product-sans font-bold text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-accent/20 hover:border-accent/40 disabled:opacity-50"
-                      >
-                        <i
-                          className={`hgi-stroke ${aiProcessing ? "hgi-loading animate-spin" : "hgi-magic-wand-01"} text-xs`}
-                        ></i>
-                        <span>fix grammar</span>
-                      </button>
-                      {aiStatus && (
-                        <span className="text-[10px] text-accent font-bold self-center animate-pulse">
-                          {aiStatus}
-                        </span>
-                      )}
-                    </div>
+                    <div></div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingNote(null)}
@@ -768,57 +612,6 @@ export default function PersonalVault({
           )}
         </div>
       </div>
-
-      {/* AI Preview Modal */}
-      {/* AI Preview Modal */}
-      {/* AI Preview Modal */}
-      <DashboardModal
-        isOpen={!!aiPreview}
-        onClose={() => setAiPreview(null)}
-        title="ai planner"
-        subtitle="live preview"
-        maxWidth="max-w-lg"
-      >
-        <div className="flex-1 overflow-y-auto max-h-[45vh] pr-2 custom-scrollbar">
-          <div className="flex flex-col border-t border-gray-50 dark:border-neutral-950">
-            {aiPreview?.data?.map((item, idx) => (
-              <div key={idx} className="flex flex-col">
-                <div className="flex items-center py-6 border-b border-gray-50 dark:border-neutral-950">
-                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans">
-                    {item.text}
-                  </span>
-                </div>
-                {item.subtasks?.map((sub, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="flex items-center py-5 pl-8 border-b border-gray-50 dark:border-neutral-950/50 last:border-0"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-neutral-600 font-product-sans leading-none">
-                      {sub}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-50 dark:border-neutral-950">
-          <button
-            onClick={() => setAiPreview(null)}
-            className="px-5 py-2 text-[10px] font-product-sans font-bold text-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer"
-          >
-            discard
-          </button>
-          <button
-            onClick={addAiTasks}
-            className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-[10px] font-product-sans font-bold text-gray-700 dark:text-gray-300 hover:text-accent hover:bg-accent/10 rounded-full transition-all duration-300 border border-gray-200 dark:border-neutral-800 hover:border-accent/30"
-          >
-            <i className="hgi-stroke hgi-tick-01 text-sm text-accent"></i>
-            <span>deploy plan</span>
-          </button>
-        </div>
-      </DashboardModal>
 
       {/* Add Subtask Modal */}
       <DashboardModal

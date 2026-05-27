@@ -3,15 +3,12 @@ import { supabase } from "../../lib/supabase";
 import PersonalVault from "./PersonalVault";
 import SpotifyWidget from "./SpotifyWidget";
 import GithubFeed from "./GithubFeed";
-import { loadPuter } from "../../lib/puter";
-import AiChatbot from "./AiChatbot";
 import FileExplorer from "./FileExplorer";
 import SystemApps from "./SystemApps";
 import Terminal from "./Terminal";
 import ClipboardManager from "./ClipboardManager";
 import ChatInput from "./ChatInput";
 import LinkVault from "./LinkVault";
-import AiVoiceAssistant from "./AiVoiceAssistant";
 import { FlickeringGrid } from "../ui/FlickeringGrid";
 
 // 7-Segment Clock Constants
@@ -418,19 +415,11 @@ export default function DashboardHome() {
   const [posts, setPosts] = useState([]);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(null); // null | "blog" | "feed" | "chat" | "notes" | "todo"
+  const [activeTab, setActiveTab] = useState(null); // null | "blog" | "feed" | "notes" | "todo"
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isScrolled, setIsScrolled] = useState(false);
   const [input, setInput] = useState("");
   const [scripts, setScripts] = useState([]);
-  const [stats, setStats] = useState({
-    used: 0,
-    limit: 50000000,
-    remaining: 50000000,
-    loading: true,
-  });
-  const [pendingChatAction, setPendingChatAction] = useState(null); // { type: "message" | "history" | "new-chat", data: {...} }
-  const [pendingMessage, setPendingMessage] = useState(null); // { content, model, webSearch }
   const [systemData, setSystemData] = useState({
     toggles: {},
     clipboard: { history: [], current: "" },
@@ -628,7 +617,6 @@ export default function DashboardHome() {
     setReady(true);
     fetchPosts();
     fetchScripts();
-    fetchStats();
   };
 
   const fetchPosts = async () => {
@@ -662,58 +650,13 @@ export default function DashboardHome() {
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      // Load puter script
-      await loadPuter();
-
-      if (window.puter?.auth?.getMonthlyUsage) {
-        const data = await window.puter.auth.getMonthlyUsage();
-        if (data?.allowanceInfo) {
-          const limit = data.allowanceInfo.monthUsageAllowance || 50000000;
-          const remaining = data.allowanceInfo.remaining || 0;
-          setStats({
-            used: limit - remaining,
-            limit,
-            remaining,
-            loading: false,
-          });
-        }
-      }
-    } catch (err) {
-      setStats((prev) => ({ ...prev, loading: false }));
-    }
-  };
-
-  const handleChatFromHome = async (userMsg, model, webSearch) => {
-    // Store the message and action, then open chat tab
-    setPendingMessage({ content: userMsg.content, model, webSearch });
-    setPendingChatAction({ type: "message" });
-    setActiveTab("chat");
-    setInput(""); // Clear the input
-  };
-
-  const handleOpenChatHistory = () => {
-    // Set action to show history, then open chat tab
-    setPendingChatAction({ type: "history" });
-    setActiveTab("chat");
-  };
-
-  const handleNewChatFromHome = () => {
-    // Set action to create new chat, then open chat tab
-    setPendingChatAction({ type: "new-chat" });
-    setActiveTab("chat");
-  };
 
   const handleTabChange = (tabName) => {
-    // Map @ command names to tab IDs
     const tabMap = {
       blog: "blog",
       feed: "feed",
-      chat: "chat",
       files: "files",
       clip: "clip",
-      voice: "voice",
       terminal: "terminal",
       system: "system",
       notes: "notes",
@@ -810,8 +753,6 @@ export default function DashboardHome() {
             {[
               { id: "blog", icon: "hgi-note-01", label: "blog" },
               { id: "feed", icon: "hgi-github", label: "feed" },
-              { id: "chat", icon: "hgi-ai-chat-02", label: "ai" },
-              { id: "voice", icon: "hgi-mic-01", label: "voice" },
               { id: "files", icon: "hgi-folder-02", label: "files" },
               { id: "clip", icon: "hgi-copy-01", label: "clip" },
               {
@@ -986,21 +927,6 @@ export default function DashboardHome() {
             />
           </div>
 
-          <div className={activeTab === "chat" ? "block text-left" : "hidden"}>
-            <AiChatbot
-              isActive={activeTab === "chat"}
-              pendingMessage={pendingMessage}
-              pendingAction={pendingChatAction}
-              onActionProcessed={() => {
-                setPendingMessage(null);
-                setPendingChatAction(null);
-              }}
-            />
-          </div>
-
-          <div className={activeTab === "voice" ? "block text-left" : "hidden"}>
-            <AiVoiceAssistant isActive={activeTab === "voice"} />
-          </div>
 
           <div className={activeTab === "files" ? "block text-left" : "hidden"}>
             <FileExplorer isActive={activeTab === "files"} />
@@ -1040,54 +966,17 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Dashboard ChatInput - only visible on home view */}
       {!activeTab && (
         <ChatInput
           input={input}
           setInput={setInput}
-          onSend={handleChatFromHome}
+          onSend={() => {}}
           loading={false}
           isActive={true}
           view="chat"
           scripts={scripts}
-          models={[
-            {
-              id: "gpt-5.4",
-              name: "GPT-5.4",
-              icon: "hgi-brain",
-              color: "text-accent",
-            },
-            {
-              id: "gpt-5.3-chat",
-              name: "GPT-5.3",
-              icon: "hgi-ai-chat-01",
-              color: "text-blue-500",
-            },
-            {
-              id: "o3-mini",
-              name: "O3 Mini",
-              icon: "hgi-ai-network",
-              color: "text-emerald-500",
-            },
-            {
-              id: "gpt-4o-mini",
-              name: "GPT-4o Mini",
-              icon: "hgi-zap",
-              color: "text-orange-500",
-            },
-            {
-              id: "claude-3-5-sonnet",
-              name: "Claude 3.5",
-              icon: "hgi-star",
-              color: "text-fuchsia-500",
-            },
-          ]}
-          stats={stats}
-          onViewChange={handleOpenChatHistory}
           onTabChange={handleTabChange}
-          onNewChat={handleNewChatFromHome}
           onShortcutScopeChange={setIsChatShortcutLocked}
-          onLoadPuter={() => { }}
         />
       )}
     </section>
