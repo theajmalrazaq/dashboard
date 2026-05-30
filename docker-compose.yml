@@ -10,6 +10,7 @@ services:
         PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
         PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY:-}
         PUBLIC_GITHUB_FEED_TOKEN: ${PUBLIC_GITHUB_FEED_TOKEN:-}
+        PUBLIC_GITHUB_TOKEN: ${PUBLIC_GITHUB_TOKEN:-}
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     restart: unless-stopped
     pid: host
@@ -30,6 +31,7 @@ services:
       PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
       PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY:-}
       PUBLIC_GITHUB_FEED_TOKEN: ${PUBLIC_GITHUB_FEED_TOKEN:-}
+      PUBLIC_GITHUB_TOKEN: ${PUBLIC_GITHUB_TOKEN:-}
     volumes:
       - ${LOCAL_HOME:-/home/theajmalrazaq}:${LOCAL_HOME:-/home/theajmalrazaq}
       - /run/user/${LOCAL_UID:-1000}:/run/user/${LOCAL_UID:-1000}

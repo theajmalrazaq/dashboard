@@ -5,11 +5,12 @@ import SpotifyWidget from "./SpotifyWidget";
 import GithubFeed from "./GithubFeed";
 import FileExplorer from "./FileExplorer";
 import SystemApps from "./SystemApps";
-import Terminal from "./Terminal";
 import ClipboardManager from "./ClipboardManager";
 import ChatInput from "./ChatInput";
 import LinkVault from "./LinkVault";
+import OfflineIndicator from "./OfflineIndicator";
 import { FlickeringGrid } from "../ui/FlickeringGrid";
+import { initOfflineSync } from "../../lib/offline/sync";
 
 // 7-Segment Clock Constants
 const H = { h: 0, m: 180 },
@@ -374,7 +375,7 @@ const SegmentClockDisplay = () => {
           border-radius: 50%;
         }
 
-        
+
 
         .clock::before,
         .clock::after {
@@ -417,22 +418,25 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(null); // null | "blog" | "feed" | "notes" | "todo"
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isScrolled, setIsScrolled] = useState(false);
   const [input, setInput] = useState("");
   const [scripts, setScripts] = useState([]);
   const [systemData, setSystemData] = useState({
     toggles: {},
     clipboard: { history: [], current: "" },
     spotify: { active: false },
-    battery: { percentage: 0, status: "unknown", remainingTime: "", capacity: 0, powerRate: 0, hasBattery: false },
+    battery: {
+      percentage: 0,
+      status: "unknown",
+      remainingTime: "",
+      capacity: 0,
+      powerRate: 0,
+      hasBattery: false,
+    },
     theme: { current: "", available: [] },
     powerProfile: { active: "", available: [] },
     reminders: [],
   });
   const [isChatShortcutLocked, setIsChatShortcutLocked] = useState(false);
-
-  const [executing, setExecuting] = useState(null);
-  const [status, setStatus] = useState({ type: null, message: "" });
 
   // Single persistent Server-Sent Events (SSE) stream connection
   useEffect(() => {
@@ -456,18 +460,37 @@ export default function DashboardHome() {
             const themeChanged =
               JSON.stringify(prev.theme) !== JSON.stringify(data.theme);
             const powerProfileChanged =
-              JSON.stringify(prev.powerProfile) !== JSON.stringify(data.powerProfile);
+              JSON.stringify(prev.powerProfile) !==
+              JSON.stringify(data.powerProfile);
             const remindersChanged =
               JSON.stringify(prev.reminders) !== JSON.stringify(data.reminders);
 
-            if (togglesChanged || clipboardChanged || spotifyChanged || batteryChanged || themeChanged || powerProfileChanged || remindersChanged) {
+            if (
+              togglesChanged ||
+              clipboardChanged ||
+              spotifyChanged ||
+              batteryChanged ||
+              themeChanged ||
+              powerProfileChanged ||
+              remindersChanged
+            ) {
               return {
                 toggles: data.toggles || {},
                 clipboard: data.clipboard || { history: [], current: "" },
                 spotify: data.spotify || { active: false },
-                battery: data.battery || { percentage: 0, status: "unknown", remainingTime: "", capacity: 0, powerRate: 0, hasBattery: false },
+                battery: data.battery || {
+                  percentage: 0,
+                  status: "unknown",
+                  remainingTime: "",
+                  capacity: 0,
+                  powerRate: 0,
+                  hasBattery: false,
+                },
                 theme: data.theme || { current: "", available: [] },
-                powerProfile: data.powerProfile || { active: "", available: [] },
+                powerProfile: data.powerProfile || {
+                  active: "",
+                  available: [],
+                },
                 reminders: data.reminders || [],
               };
             }
@@ -487,15 +510,6 @@ export default function DashboardHome() {
       eventSource.close();
     };
   }, [ready]);
-
-  // Handle scroll for sticky header states
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Handle Spacebar & Arrow keys to control Spotify on Home View
   useEffect(() => {
@@ -525,7 +539,9 @@ export default function DashboardHome() {
             Accept: "application/json",
           },
           body: JSON.stringify({ command: "playpause" }),
-        }).catch((err) => console.error("Failed to toggle Spotify play/pause", err));
+        }).catch((err) =>
+          console.error("Failed to toggle Spotify play/pause", err),
+        );
       } else if (e.key === "ArrowRight") {
         e.preventDefault(); // Prevent page scrolling
         const command = e.shiftKey ? "seekforward" : "next";
@@ -537,7 +553,9 @@ export default function DashboardHome() {
             Accept: "application/json",
           },
           body: JSON.stringify({ command }),
-        }).catch((err) => console.error(`Failed to execute Spotify ${command}`, err));
+        }).catch((err) =>
+          console.error(`Failed to execute Spotify ${command}`, err),
+        );
       } else if (e.key === "ArrowLeft") {
         e.preventDefault(); // Prevent page scrolling
         const command = e.shiftKey ? "seekbackward" : "prev";
@@ -549,7 +567,9 @@ export default function DashboardHome() {
             Accept: "application/json",
           },
           body: JSON.stringify({ command }),
-        }).catch((err) => console.error(`Failed to execute Spotify ${command}`, err));
+        }).catch((err) =>
+          console.error(`Failed to execute Spotify ${command}`, err),
+        );
       } else if (e.key === "ArrowUp") {
         e.preventDefault(); // Prevent page scrolling
         // Call the Spotify API volup command
@@ -560,7 +580,9 @@ export default function DashboardHome() {
             Accept: "application/json",
           },
           body: JSON.stringify({ command: "volup" }),
-        }).catch((err) => console.error("Failed to increase Spotify volume", err));
+        }).catch((err) =>
+          console.error("Failed to increase Spotify volume", err),
+        );
       } else if (e.key === "ArrowDown") {
         e.preventDefault(); // Prevent page scrolling
         // Call the Spotify API voldown command
@@ -571,7 +593,9 @@ export default function DashboardHome() {
             Accept: "application/json",
           },
           body: JSON.stringify({ command: "voldown" }),
-        }).catch((err) => console.error("Failed to decrease Spotify volume", err));
+        }).catch((err) =>
+          console.error("Failed to decrease Spotify volume", err),
+        );
       }
     };
 
@@ -615,6 +639,7 @@ export default function DashboardHome() {
       return;
     }
     setReady(true);
+    initOfflineSync();
     fetchPosts();
     fetchScripts();
   };
@@ -645,11 +670,10 @@ export default function DashboardHome() {
         });
         setScripts(filtered);
       }
-    } catch (err) {
+    } catch {
       /* Silent fail */
     }
   };
-
 
   const handleTabChange = (tabName) => {
     const tabMap = {
@@ -657,7 +681,6 @@ export default function DashboardHome() {
       feed: "feed",
       files: "files",
       clip: "clip",
-      terminal: "terminal",
       system: "system",
       notes: "notes",
       tasks: "todo",
@@ -681,7 +704,7 @@ export default function DashboardHome() {
     <section className="relative w-full flex justify-center z-10 min-h-screen bg-white dark:bg-black">
       {/* Background Effect - Exact match to PageLayout.astro */}
       <div
-        className="absolute inset-x-0 top-0 h-[100px] sm:h-[120px] w-full overflow-hidden z-0 pointer-events-none"
+        className="absolute inset-x-0 top-0 h-25 sm:h-30 w-full overflow-hidden z-0 pointer-events-none"
         style={{
           maskImage: "linear-gradient(to bottom, black, transparent)",
           WebkitMaskImage: "linear-gradient(to bottom, black, transparent)",
@@ -697,15 +720,17 @@ export default function DashboardHome() {
       </div>
 
       <div
-        className={`relative w-full px-4 pb-16 ${activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-28 sm:pt-32"
-          } mx-auto flex flex-col z-10`}
+        className={`relative w-full px-4 pb-16 ${
+          activeTab ? "max-w-6xl pt-20 sm:pt-24" : "max-w-4xl pt-28 sm:pt-32"
+        } mx-auto flex flex-col z-10`}
       >
         {/* Home View (Visible when no tab is selected) */}
         <div
-          className={`flex flex-col gap-8 transition-all duration-700 ease-in-out ${activeTab
-            ? "opacity-0 invisible h-0 -mb-8 scale-95 overflow-hidden"
-            : "opacity-100 visible h-auto"
-            }`}
+          className={`flex flex-col gap-8 transition-all duration-700 ease-in-out ${
+            activeTab
+              ? "opacity-0 invisible h-0 -mb-8 scale-95 overflow-hidden"
+              : "opacity-100 visible h-auto"
+          }`}
         >
           <div className="flex flex-col items-center justify-center pt-12 sm:pt-16 -mb-4">
             <div className="relative w-full flex justify-center">
@@ -734,8 +759,12 @@ export default function DashboardHome() {
                     className="flex items-center gap-2 px-4 py-2 bg-gray-50/60 dark:bg-neutral-900/30 border border-gray-100 dark:border-neutral-900/80 rounded-full text-xs font-product-sans"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
-                    <span className="text-gray-900 dark:text-gray-100 font-bold lowercase">{rem.message}</span>
-                    <span className="text-gray-600 dark:text-neutral-500 font-bold">in {Math.ceil(rem.remaining / 60)}m</span>
+                    <span className="text-gray-900 dark:text-gray-100 font-bold lowercase">
+                      {rem.message}
+                    </span>
+                    <span className="text-gray-600 dark:text-neutral-500 font-bold">
+                      in {Math.ceil(rem.remaining / 60)}m
+                    </span>
                   </div>
                 ))}
               </div>
@@ -755,11 +784,6 @@ export default function DashboardHome() {
               { id: "feed", icon: "hgi-github", label: "feed" },
               { id: "files", icon: "hgi-folder-02", label: "files" },
               { id: "clip", icon: "hgi-copy-01", label: "clip" },
-              {
-                id: "terminal",
-                icon: "hgi-computer-terminal-01",
-                label: "term",
-              },
               { id: "system", icon: "hgi-dashboard-square-01", label: "sys" },
               { id: "notes", icon: "hgi-note", label: "notes" },
               { id: "todo", icon: "hgi-task-01", label: "tasks" },
@@ -769,30 +793,13 @@ export default function DashboardHome() {
                 onClick={() =>
                   setActiveTab(activeTab === tab.id ? null : tab.id)
                 }
-                className={`cursor-pointer flex items-center justify-center gap-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 outline-none ring-0 ${activeTab === tab.id
-                  ? "px-5 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
-                  : "w-10 h-10 text-gray-700 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
+                className={`cursor-pointer flex items-center justify-center gap-2 rounded-full text-[11px] font-product-sans font-bold transition-all duration-300 outline-none ring-0 ${
+                  activeTab === tab.id
+                    ? "px-5 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700"
+                    : "w-10 h-10 text-gray-700 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
               >
-                {tab.id === "terminal" ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    className="w-5 h-5"
-                    color="currentColor"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M7 7L8.22654 8.05719C8.74218 8.50163 9 8.72386 9 9C9 9.27614 8.74218 9.49836 8.22654 9.94281L7 11" />
-                    <path d="M11 11H14" />
-                    <path d="M12 21C15.7497 21 17.6246 21 18.9389 20.0451C19.3634 19.7367 19.7367 19.3634 20.0451 18.9389C21 17.6246 21 15.7497 21 12C21 8.25027 21 6.3754 20.0451 5.06107C19.7367 4.6366 19.3634 4.26331 18.9389 3.95491C17.6246 3 15.7497 3 12 3C8.25027 3 6.3754 3 5.06107 3.95491C4.6366 4.26331 4.26331 4.6366 3.95491 5.06107C3 6.3754 3 8.25027 3 12C3 15.7497 3 17.6246 3.95491 18.9389C4.26331 19.3634 4.6366 19.7367 5.06107 20.0451C6.3754 21 8.25027 21 12 21Z" />
-                  </svg>
-                ) : (
-                  <i className={`hgi hgi-stroke ${tab.icon} text-lg`}></i>
-                )}
+                <i className={`hgi hgi-stroke ${tab.icon} text-lg`}></i>
                 {activeTab === tab.id && (
                   <span className="lowercase">{tab.label}</span>
                 )}
@@ -859,10 +866,11 @@ export default function DashboardHome() {
                             {post.title}
                           </h3>
                           <span
-                            className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold ${post.is_published
-                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                              : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
-                              }`}
+                            className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-product-sans font-bold ${
+                              post.is_published
+                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700"
+                            }`}
                           >
                             {post.is_published ? "live" : "draft"}
                           </span>
@@ -896,7 +904,7 @@ export default function DashboardHome() {
                     </div>
                   ))}
                   {posts.length === 0 && (
-                    <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px]">
+                    <div className="text-center py-20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-4xl">
                       <p className="text-sm text-gray-600 font-product-sans">
                         no posts found.
                       </p>
@@ -927,7 +935,6 @@ export default function DashboardHome() {
             />
           </div>
 
-
           <div className={activeTab === "files" ? "block text-left" : "hidden"}>
             <FileExplorer isActive={activeTab === "files"} />
           </div>
@@ -952,15 +959,7 @@ export default function DashboardHome() {
             />
           </div>
 
-          <div
-            className={activeTab === "terminal" ? "block text-left" : "hidden"}
-          >
-            <Terminal isActive={activeTab === "terminal"} />
-          </div>
-
-          <div
-            className={activeTab === "links" ? "block text-left" : "hidden"}
-          >
+          <div className={activeTab === "links" ? "block text-left" : "hidden"}>
             <LinkVault isActive={activeTab === "links"} />
           </div>
         </div>
@@ -979,6 +978,7 @@ export default function DashboardHome() {
           onShortcutScopeChange={setIsChatShortcutLocked}
         />
       )}
+      <OfflineIndicator />
     </section>
   );
 }

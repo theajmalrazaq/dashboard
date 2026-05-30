@@ -2,7 +2,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 
 // Initialize Animate On Scroll (AOS)
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   AOS.init({
     duration: 1200,
     once: false,

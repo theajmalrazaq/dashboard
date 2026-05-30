@@ -112,7 +112,7 @@ export default function FileExplorer({ isActive }) {
             </button>
           )}
           <div className="flex flex-col">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans lowercase truncate max-w-[200px] sm:max-w-md">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 font-product-sans lowercase truncate max-w-50 sm:max-w-md">
               {path.replace(DEFAULT_HOME, "~") || "root"}
             </h3>
             <p className="text-[10px] text-gray-600 dark:text-neutral-600 font-product-sans lowercase">
@@ -137,10 +137,10 @@ export default function FileExplorer({ isActive }) {
           <button
             key={idx}
             onClick={() => handleItemClick(item)}
-            className="group flex flex-col items-center gap-3 p-4 bg-transparent hover:bg-gray-400/5 dark:hover:bg-white/[0.02] rounded-[32px] border border-transparent hover:border-gray-100 dark:hover:border-neutral-900 transition-all duration-500 cursor-pointer"
+            className="group flex flex-col items-center gap-3 p-4 bg-transparent hover:bg-gray-400/5 dark:hover:bg-white/2 rounded-4xl border border-transparent hover:border-gray-100 dark:hover:border-neutral-900 transition-all duration-500 cursor-pointer"
           >
             <div
-              className={`w-16 h-16 flex items-center justify-center rounded-[24px] bg-gray-50 dark:bg-neutral-900/50 text-gray-600 group-hover:text-accent group-hover:bg-accent/5 transition-all duration-300 transform group-hover:scale-110 border border-transparent group-hover:border-accent/10 relative overflow-hidden`}
+              className={`w-16 h-16 flex items-center justify-center rounded-3xl bg-gray-50 dark:bg-neutral-900/50 text-gray-600 group-hover:text-accent group-hover:bg-accent/5 transition-all duration-300 transform group-hover:scale-110 border border-transparent group-hover:border-accent/10 relative overflow-hidden`}
             >
               <i className={`hgi-stroke ${getIcon(item)} text-2xl`}></i>
             </div>
@@ -151,7 +151,7 @@ export default function FileExplorer({ isActive }) {
         ))}
 
         {items.length === 0 && !loading && (
-          <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-[32px] flex flex-col items-center justify-center text-gray-600">
+          <div className="col-span-full py-20 bg-gray-50/50 dark:bg-neutral-950/20 border-2 border-dashed border-gray-100 dark:border-neutral-900 rounded-4xl flex flex-col items-center justify-center text-gray-600">
             <i className="hgi hgi-stroke hgi-folder-open text-3xl mb-2 opacity-50"></i>
             <p className="text-sm font-product-sans">Empty directory</p>
           </div>

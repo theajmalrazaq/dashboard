@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { marked } from "marked";
+import {
+  getPostWithOfflineFallback,
+  queuePostCreate,
+  queuePostUpdate,
+} from "../../lib/offline/sync";
 
 export default function PostEditor({ postId = null }) {
   const [title, setTitle] = useState("");
@@ -17,28 +22,23 @@ export default function PostEditor({ postId = null }) {
   const [activeTab, setActiveTab] = useState("content"); // "content" | "meta"
 
   useEffect(() => {
+    const fetchPost = async () => {
+      setFetching(true);
+      const data = await getPostWithOfflineFallback(postId);
+      if (data) {
+        setTitle(data.title || "");
+        setSlug(data.slug || "");
+        setDescription(data.description || "");
+        setContent(data.content || "");
+        setSocialImage(data.social_image || "");
+        setKeywords(data.keywords ? data.keywords.join(", ") : "");
+        setReadTime(data.read_time || 5);
+        setIsPublished(data.is_published || false);
+      }
+      setFetching(false);
+    };
     if (postId) fetchPost();
   }, [postId]);
-
-  const fetchPost = async () => {
-    setFetching(true);
-    const { data } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("id", postId)
-      .single();
-    if (data) {
-      setTitle(data.title || "");
-      setSlug(data.slug || "");
-      setDescription(data.description || "");
-      setContent(data.content || "");
-      setSocialImage(data.social_image || "");
-      setKeywords(data.keywords ? data.keywords.join(", ") : "");
-      setReadTime(data.read_time || 5);
-      setIsPublished(data.is_published || false);
-    }
-    setFetching(false);
-  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -62,21 +62,45 @@ export default function PostEditor({ postId = null }) {
       date: new Date().toISOString(),
     };
 
-    const result = postId
-      ? await supabase.from("posts").update(postData).eq("id", postId)
-      : await supabase.from("posts").insert([postData]);
+    const postDataWithMeta = {
+      ...postData,
+      id: postId || Date.now().toString(),
+    };
 
-    if (result.error) {
-      alert("Error saving: " + result.error.message);
+    if (navigator.onLine) {
+      try {
+        const result = postId
+          ? await supabase.from("posts").update(postData).eq("id", postId)
+          : await supabase.from("posts").insert([postData]);
+
+        if (result.error) {
+          alert("Error saving: " + result.error.message);
+        } else {
+          window.location.href = "/dashboard";
+        }
+      } catch (error) {
+        console.error("Save error:", error);
+        if (postId) {
+          await queuePostUpdate(postDataWithMeta);
+        } else {
+          await queuePostCreate(postDataWithMeta);
+        }
+        alert("Saved offline, will sync when online");
+      }
     } else {
-      window.location.href = "/dashboard";
+      if (postId) {
+        await queuePostUpdate(postDataWithMeta);
+      } else {
+        await queuePostCreate(postDataWithMeta);
+      }
+      alert("Saved offline, will sync when online");
     }
     setLoading(false);
   };
 
   if (fetching) {
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
+      <div className="flex items-center justify-center min-h-125">
         <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-600 border-t-accent dark:border-t-white rounded-full animate-spin"></div>
       </div>
     );
@@ -90,7 +114,7 @@ export default function PostEditor({ postId = null }) {
       <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-15 pt-16 sm:pt-24 pb-16 sm:pb-8 flex flex-col gap-8 z-10">
         {/* Header */}
         <div className="flex flex-col items-center justify-center text-center gap-4">
-          <h1 className="text-[40px] sm:text-[50px] [font-family:'GeistPixelGrid'] text-gray-900 dark:text-gray-100">
+          <h1 className="text-[40px] sm:text-[50px] font-['GeistPixelGrid'] text-gray-900 dark:text-gray-100">
             {postId ? "edit post" : "new post"}
           </h1>
           <p className="text-base text-gray-600 dark:text-gray-400 font-product-sans leading-relaxed max-w-3xl mx-auto text-center">
@@ -174,14 +198,17 @@ export default function PostEditor({ postId = null }) {
 
         {/* Title input — always visible */}
         {!preview && (
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Post title..."
-            required
-            className="w-full text-2xl sm:text-3xl font-bold bg-transparent outline-none border-b border-gray-100 dark:border-neutral-900 pb-4 text-gray-900 dark:text-gray-100 placeholder:text-gray-200 dark:placeholder:text-neutral-800 font-product-sans"
-          />
+          <label htmlFor="post-title" className="flex flex-col w-full">
+            <input
+              id="post-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Post title..."
+              required
+              className="w-full text-2xl sm:text-3xl font-bold bg-transparent outline-none border-b border-gray-100 dark:border-neutral-900 pb-4 text-gray-900 dark:text-gray-100 placeholder:text-gray-200 dark:placeholder:text-neutral-800 font-product-sans"
+            />
+          </label>
         )}
 
         {/* Content tab */}
@@ -189,16 +216,20 @@ export default function PostEditor({ postId = null }) {
           <div className="flex flex-col gap-6">
             {/* Inline slug + read time */}
             <div className="flex flex-wrap items-center gap-3 -mt-4">
-              <div className="flex items-center gap-2 text-xs text-gray-600 font-product-sans">
+              <label
+                htmlFor="post-slug"
+                className="flex items-center gap-2 text-xs text-gray-600 font-product-sans"
+              >
                 <i className="hgi-stroke hgi-link-01 text-xs"></i>
                 <input
+                  id="post-slug"
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="url-slug"
                   className="bg-transparent outline-none font-mono text-accent placeholder:text-gray-500 dark:placeholder:text-neutral-700 w-36"
                 />
-              </div>
+              </label>
               <span className="text-gray-200 dark:text-neutral-800">·</span>
               <div className="flex items-center gap-1 text-xs text-gray-600 font-product-sans">
                 <i className="hgi-stroke hgi-clock-01 text-xs"></i>
@@ -217,7 +248,7 @@ export default function PostEditor({ postId = null }) {
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your content in markdown..."
               required
-              className="w-full min-h-[500px] bg-transparent outline-none border-none text-gray-600 dark:text-gray-400 font-product-sans leading-relaxed resize-none text-base py-2 border-t border-gray-100 dark:border-neutral-900 pt-4"
+              className="w-full min-h-125 bg-transparent outline-none border-none text-gray-600 dark:text-gray-400 font-product-sans leading-relaxed resize-none text-base py-2 border-t border-gray-100 dark:border-neutral-900 pt-4"
             />
           </div>
         )}
@@ -234,10 +265,10 @@ export default function PostEditor({ postId = null }) {
                 rows: 3,
               },
             ].map(({ label, value, onChange, placeholder, rows }) => (
-              <div key={label} className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
+              <label key={label} className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
                   {label}
-                </label>
+                </span>
                 <textarea
                   value={value}
                   onChange={(e) => onChange(e.target.value)}
@@ -245,7 +276,7 @@ export default function PostEditor({ postId = null }) {
                   rows={rows}
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-500 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300 resize-none"
                 />
-              </div>
+              </label>
             ))}
 
             {[
@@ -262,10 +293,10 @@ export default function PostEditor({ postId = null }) {
                 placeholder: "react, design, css...",
               },
             ].map(({ label, value, onChange, placeholder }) => (
-              <div key={label} className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
+              <label key={label} className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-400 font-product-sans">
                   {label}
-                </label>
+                </span>
                 <input
                   type="text"
                   value={value}
@@ -273,11 +304,11 @@ export default function PostEditor({ postId = null }) {
                   placeholder={placeholder}
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-full font-product-sans text-sm text-gray-600 dark:text-gray-400 placeholder:text-gray-500 dark:placeholder:text-neutral-700 outline-none focus:border-accent transition-colors duration-300"
                 />
-              </div>
+              </label>
             ))}
 
             {socialImage && (
-              <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-gray-100 dark:border-neutral-900 mt-2">
+              <div className="aspect-video rounded-2xl overflow-hidden border border-gray-100 dark:border-neutral-900 mt-2">
                 <img
                   src={socialImage}
                   className="w-full h-full object-cover"
@@ -297,18 +328,20 @@ export default function PostEditor({ postId = null }) {
                 Live Preview
               </span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-bold [font-family:'GeistPixelGrid'] text-gray-900 dark:text-gray-100 mb-8">
+            <h2 className="text-3xl sm:text-5xl font-bold font-['GeistPixelGrid'] text-gray-900 dark:text-gray-100 mb-8">
               {title || "Untitled"}
             </h2>
+            {/* Markdown content is safely parsed by marked library */}
             <div
+              suppressHydrationWarning
               className="prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-p:font-product-sans prose-p:text-gray-700 dark:prose-p:text-gray-400 prose-headings:font-product-sans"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: markdown is safely parsed by marked
               dangerouslySetInnerHTML={{
                 __html: marked.parse(content || "_Nothing to preview yet..._"),
               }}
             />
           </div>
         )}
-
       </div>
     </form>
   );

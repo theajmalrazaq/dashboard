@@ -70,11 +70,6 @@ const AT_COMMANDS = [
   { name: "files", description: "File Explorer", icon: "hgi-folder-02" },
   { name: "clip", description: "Clipboard", icon: "hgi-copy-01" },
   {
-    name: "terminal",
-    description: "Terminal",
-    icon: "hgi-computer-terminal-01",
-  },
-  {
     name: "system",
     description: "System Apps",
     icon: "hgi-dashboard-square-01",
@@ -82,16 +77,17 @@ const AT_COMMANDS = [
   { name: "notes", description: "Notes", icon: "hgi-note" },
   { name: "tasks", description: "Tasks", icon: "hgi-task-01" },
   { name: "links", description: "Link Vault", icon: "hgi-link-02" },
+  { name: "repos", description: "GitHub Manager", icon: "hgi-github-01" },
 ];
 
 export default function ChatInput({
   input,
   setInput,
-  onSend,
+
   loading,
   isActive,
   view,
-  scripts,
+
   onTabChange,
   onShortcutScopeChange,
 }) {
@@ -104,13 +100,11 @@ export default function ChatInput({
   const [customCommands, setCustomCommands] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCommand, setNewCommand] = useState({ name: "", url: "" });
-  const [commandType, setCommandType] = useState("slash");
   const [showDollarCommands, setShowDollarCommands] = useState(false);
   const [filteredDollarCommands, setFilteredDollarCommands] = useState([]);
   const [selectedDollarIndex, setSelectedDollarIndex] = useState(-1);
   const [isReminderActive, setIsReminderActive] = useState(false);
   const [reminderMinutes, setReminderMinutes] = useState(null);
-  const [executing, setExecuting] = useState(null);
   const [status, setStatus] = useState({ type: null, message: "" });
   const selectedButtonRef = useRef(null);
   const inputRef = useRef(null);
@@ -121,7 +115,6 @@ export default function ChatInput({
   const [customMinutes, setCustomMinutes] = useState("");
   const [isCustomActive, setIsCustomActive] = useState(false);
   const [reminderStartTime, setReminderStartTime] = useState(0);
-
 
   useEffect(() => {
     if (isCustomActive) {
@@ -137,7 +130,9 @@ export default function ChatInput({
 
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
-        setFocusedPillIndex((prev) => (prev < PRESETS.length - 1 ? prev + 1 : prev));
+        setFocusedPillIndex((prev) =>
+          prev < PRESETS.length - 1 ? prev + 1 : prev,
+        );
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
         setFocusedPillIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -171,11 +166,17 @@ export default function ChatInput({
 
     window.addEventListener("keydown", handleDurationKeyDown);
     return () => window.removeEventListener("keydown", handleDurationKeyDown);
-  }, [reminderSetupStep, focusedPillIndex, isCustomActive, reminderStartTime]);
+  }, [reminderSetupStep, focusedPillIndex, reminderStartTime]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
-      if (!isActive || view === "history" || showAddModal || reminderSetupStep === "duration") return;
+      if (
+        !isActive ||
+        view === "history" ||
+        showAddModal ||
+        reminderSetupStep === "duration"
+      )
+        return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       const activeTag = document.activeElement?.tagName;
@@ -437,7 +438,10 @@ export default function ChatInput({
           setInput("");
           setIsReminderActive(false);
         } else {
-          setStatus({ type: "error", message: `failed: ${result.error || "unknown"}` });
+          setStatus({
+            type: "error",
+            message: `failed: ${result.error || "unknown"}`,
+          });
         }
       } catch {
         setStatus({ type: "error", message: "network error." });
@@ -477,6 +481,14 @@ export default function ChatInput({
       }
     }
 
+    // Plain text — search Google
+    const query = input.trim();
+    if (query) {
+      window.open(
+        `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+        "_blank",
+      );
+    }
     setInput("");
   };
 
@@ -495,10 +507,14 @@ export default function ChatInput({
       >
         <form onSubmit={handleAddCommand} className="flex flex-col gap-4">
           <div>
-            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2">
+            <label
+              htmlFor="command-name"
+              className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2"
+            >
               Name
             </label>
             <input
+              id="command-name"
               type="text"
               value={newCommand.name}
               onChange={(e) =>
@@ -510,10 +526,14 @@ export default function ChatInput({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2">
+            <label
+              htmlFor="command-url"
+              className="text-xs font-bold text-gray-700 dark:text-gray-300 font-product-sans  st block mb-2"
+            >
               URL
             </label>
             <input
+              id="command-url"
               type="url"
               value={newCommand.url}
               onChange={(e) =>
@@ -583,7 +603,9 @@ export default function ChatInput({
               {isReminderActive && (
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-accent/15 border border-accent/25 text-accent rounded-full text-[10px] font-bold font-product-sans animate-in zoom-in duration-300 select-none shrink-0">
                   <i className="hgi hgi-stroke hgi-clock-02 text-xs"></i>
-                  {reminderSetupStep === "duration" ? "$reminder" : `$reminder ${reminderMinutes}`}
+                  {reminderSetupStep === "duration"
+                    ? "$reminder"
+                    : `$reminder ${reminderMinutes}`}
                   <button
                     type="button"
                     onClick={() => {
@@ -634,13 +656,15 @@ export default function ChatInput({
             >
               {filteredDollarCommands.map((cmd, index) => (
                 <button
+                  type="button"
                   key={cmd.name}
                   ref={selectedDollarIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "dollar")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${selectedDollarIndex === index
-                    ? "bg-accent text-white animate-pulse"
-                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                    }`}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                    selectedDollarIndex === index
+                      ? "bg-accent text-white animate-pulse"
+                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                  }`}
                 >
                   <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>$
                   {cmd.name}
@@ -657,13 +681,15 @@ export default function ChatInput({
             >
               {filteredTabCommands.map((cmd, index) => (
                 <button
+                  type="button"
                   key={cmd.name}
                   ref={selectedTabIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd, "tab")}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${selectedTabIndex === index
-                    ? "bg-accent text-white"
-                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                    }`}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                    selectedTabIndex === index
+                      ? "bg-accent text-white"
+                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                  }`}
                 >
                   <i className={`hgi hgi-stroke ${cmd.icon} text-xs`}></i>@
                   {cmd.name}
@@ -692,13 +718,15 @@ export default function ChatInput({
               </button>
               {filteredCommands.map((cmd, index) => (
                 <button
+                  type="button"
                   key={cmd.name}
                   ref={selectedIndex === index ? selectedButtonRef : null}
                   onClick={() => executeCommand(cmd)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 ${selectedIndex === index
-                    ? "bg-accent text-white"
-                    : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
-                    }`}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all whitespace-nowrap shrink-0 ${
+                    selectedIndex === index
+                      ? "bg-accent text-white"
+                      : "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20"
+                  }`}
                 >
                   /{cmd.name}
                 </button>
@@ -714,12 +742,13 @@ export default function ChatInput({
                 </span>
                 {status.message && (
                   <div
-                    className={`px-2 py-0.5 rounded-full border text-[8px] font-product-sans font-bold flex items-center gap-1 animate-in fade-in duration-200 ${status.type === "success"
-                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                      : status.type === "error"
-                        ? "bg-red-500/10 text-red-500 border-red-500/20"
-                        : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                      }`}
+                    className={`px-2 py-0.5 rounded-full border text-[8px] font-product-sans font-bold flex items-center gap-1 animate-in fade-in duration-200 ${
+                      status.type === "success"
+                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                        : status.type === "error"
+                          ? "bg-red-500/10 text-red-500 border-red-500/20"
+                          : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                    }`}
                   >
                     <span
                       className={`w-1 h-1 rounded-full ${status.type === "success" ? "bg-emerald-500" : status.type === "error" ? "bg-red-500" : "bg-blue-500 animate-pulse"}`}
@@ -730,7 +759,9 @@ export default function ChatInput({
               </div>
               <div className="flex gap-1.5 flex-wrap">
                 {[5, 10, 15, 30, 45, 60, "custom"].map((t, index) => {
-                  const isFocused = reminderSetupStep === "duration" && focusedPillIndex === index;
+                  const isFocused =
+                    reminderSetupStep === "duration" &&
+                    focusedPillIndex === index;
                   const isSelected = reminderMinutes === t && t !== "custom";
 
                   if (t === "custom") {
@@ -742,12 +773,13 @@ export default function ChatInput({
                           setFocusedPillIndex(index);
                           setIsCustomActive(true);
                         }}
-                        className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all flex items-center justify-center ${isFocused
-                          ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
-                          : isCustomActive
-                            ? "bg-accent/15 border-accent/25 text-accent"
-                            : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
-                          }`}
+                        className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all flex items-center justify-center ${
+                          isFocused
+                            ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
+                            : isCustomActive
+                              ? "bg-accent/15 border-accent/25 text-accent"
+                              : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                        }`}
                       >
                         {isCustomActive ? (
                           <input
@@ -791,12 +823,13 @@ export default function ChatInput({
                         setIsCustomActive(false);
                         setTimeout(() => inputRef.current?.focus(), 50);
                       }}
-                      className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all ${isSelected
-                        ? "bg-accent/15 text-accent border-accent/25"
-                        : isFocused
-                          ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
-                          : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
-                        }`}
+                      className={`cursor-pointer px-3.5 py-1.5 rounded-full text-[10px] font-product-sans font-bold border transition-all ${
+                        isSelected
+                          ? "bg-accent/15 text-accent border-accent/25"
+                          : isFocused
+                            ? "bg-accent/20 border-accent/40 text-accent ring-2 ring-accent/30 scale-105"
+                            : "border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-900/40"
+                      }`}
                     >
                       {t}m
                     </button>
@@ -805,7 +838,6 @@ export default function ChatInput({
               </div>
             </div>
           )}
-
         </div>
       )}
 
@@ -815,7 +847,11 @@ export default function ChatInput({
           <div className="w-90 p-4 rounded-xl border flex items-start gap-3 backdrop-blur-md bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold leading-none lowercase">
-                {status.type === "success" ? "success" : status.type === "error" ? "error" : "system"}
+                {status.type === "success"
+                  ? "success"
+                  : status.type === "error"
+                    ? "error"
+                    : "system"}
               </p>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed font-product-sans">
                 {status.message}
@@ -825,6 +861,7 @@ export default function ChatInput({
               <div className="w-3.5 h-3.5 border-2 border-t-transparent border-accent rounded-full animate-spin shrink-0 mt-0.5"></div>
             )}
             <button
+              type="button"
               onClick={() => setStatus({ type: null, message: "" })}
               className="text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors shrink-0 p-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
               title="Close toast"
